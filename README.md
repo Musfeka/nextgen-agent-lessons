@@ -1,15 +1,8 @@
-# Data Engineering AI Agent
+# NextGen Agent Lessons 🚀
 
-An autonomous Data Engineering AI Agent built with Google's `google-genai` SDK and Python. The agent uses the ReAct pattern to process user prompts and invoke local tools.
+Welcome to the **NextGen Agent Lessons** repository! This project serves as a comprehensive structured guide and learning log for mastering AI Agent engineering, skill composition, and advanced orchestration.
 
-## Features
-- **SQL Tool**: Executes queries on an in-memory database.
-- **CSV Inspection**: Reads, previews, and inspects CSV files.
-- **Data Quality Checker**: Identifies missing values and duplicate records.
-- **Automated Tests**: Unit testing implemented via `pytest`.
-
-## Setup & Running Tests
-```bash
-pip install -r requirements.txt
-pytest test_agent.py
-```
+## 📂 Repository Structure
+* `lessons/` - Contains core step-by-step interactive HTML lessons (from 0001 to 0013).
+* `reference/` - Supplementary guidelines, design canvases, and glossaries.
+* Root Markdown files (`README.md`, `outline.md`, `NOTES.md`, `MISSION.md`) - Project documentation and tracking logs.
