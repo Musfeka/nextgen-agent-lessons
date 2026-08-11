@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 13 — Agentic RAG & Knowledge Retrieval</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 13 of 13</p>
+  <h1>Agentic RAG & Knowledge Retrieval</h1>
+  <p class="question">How do agents dynamically decide when and how to search external knowledge bases?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 20 minutes</span>
+    <span><strong>You will learn</strong> Query Rewriting, Self-Correction, and Tool-augmented RAG</span>
+  </div>
+</header>
+
+<p class="lede">Traditional RAG blindly retrieves documents for every user prompt. Agentic RAG gives the AI control to evaluate retrieved chunks, rewrite queries if necessary, and decide if external search is even required.</p>
+
+<h2>13.1 Traditional RAG vs. Agentic RAG</h2>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">Traditional</span>
+    <h5>Static Pipeline</h5>
+    <p>User Prompt -> Vector Search -> Fixed LLM Generation (No reasoning about retrieval quality).</p>
+  </div>
+  <div class="card">
+    <span class="num">Agentic</span>
+    <h5>Dynamic Reasoning Loop</h5>
+    <p>User Prompt -> Agent Decides to Search -> Evaluates Quality -> Rewrites/Loops if needed -> Final Output.</p>
+  </div>
+</div>
+
+<h2>13.2 Core Capabilities</h2>
+<ul>
+  <li><strong>Query Decomposition:</strong> Breaking a complex question into simpler sub-queries.</li>
+  <li><strong>Relevance Grading:</strong> Filtering out irrelevant search results before passing them to the LLM context.</li>
+  <li><strong>Fallback Actions:</strong> Deciding to use web search or code execution when local vector search fails.</li>
+</ul>
+
+</main>
+</body>
+</html>

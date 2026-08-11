@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 12 — Agent Memory & Persistence</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 12 of 12</p>
+  <h1>Agent Memory & Persistence</h1>
+  <p class="question">How do agents remember context across conversations and execution loops?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 15 minutes</span>
+    <span><strong>You will learn</strong> Short-term vs. Long-term memory and Vector DB integration</span>
+  </div>
+</header>
+
+<p class="lede">Without memory, an agent starts every conversation as a blank slate. Memory allows agents to maintain long-term context, learn from past mistakes, and track multi-step goals over time.</p>
+
+<h2>12.1 Types of Agent Memory</h2>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">Type 1</span>
+    <h5>Short-Term Memory</h5>
+    <p>In-context memory maintained within the immediate window (e.g., chat history in the current session).</p>
+  </div>
+  <div class="card">
+    <span class="num">Type 2</span>
+    <h5>Long-Term Memory</h5>
+    <p>Persistent storage backed by Vector Databases or Key-Value stores (e.g., ChromaDB, Mem0) to retrieve past insights.</p>
+  </div>
+</div>
+
+<h2>12.2 The Memory Retrieval Loop</h2>
+
+<div class="flow">
+  <span class="node">User Input</span><span class="arr">→</span>
+  <span class="node">Vector Search</span><span class="arr">→</span>
+  <span class="node">Inject Memory Context</span><span class="arr">→</span>
+  <span class="node hi">LLM Reason & Act</span><span class="arr">→</span>
+  <span class="node">Save Result</span><span class="arr">↺</span>
+</div>
+
+</main>
+</body>
+</html>
