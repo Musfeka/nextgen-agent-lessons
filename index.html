@@ -1,1 +1,197 @@
-<html><body><h1>Welcome to NextGen Agent</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Skills — Course Index</title>
+<link rel="stylesheet" href="assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Teaching workspace</p>
+  <h1>Agent Skills</h1>
+  <p class="question">Ten units, from "what is an agent" to a Skill you actually use.</p>
+  <div class="meta">
+    <span><strong>For</strong> learning by building, then delivering to a cross-functional team</span>
+    <span><strong>Grounded in</strong> Anthropic primary sources</span>
+  </div>
+</header>
+
+<p class="lede">Work through the units in order — each assumes the one before. Every unit ends with an
+activity that feeds the next, and all of them feed the Unit 10 capstone. The reference documents are
+the compressed versions: print those, not the lessons.</p>
+
+<h2>The learning progression</h2>
+
+<div class="flow">
+  <span class="node">Understand</span><span class="arr">→</span>
+  <span class="node">Observe</span><span class="arr">→</span>
+  <span class="node">Decompose</span><span class="arr">→</span>
+  <span class="node">Design</span><span class="arr">→</span>
+  <span class="node hi">Build</span><span class="arr">→</span>
+  <span class="node">Test</span><span class="arr">→</span>
+  <span class="node">Evaluate</span><span class="arr">→</span>
+  <span class="node">Compose</span><span class="arr">→</span>
+  <span class="node">Demonstrate</span>
+</div>
+
+<h2>Units</h2>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>#</th><th>Unit</th><th>Core question</th><th>You leave with</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><a href="lessons/0001-what-is-an-agent.html"><strong>What is an Agent?</strong></a></td>
+      <td>What makes an agent different from a chatbot?</td>
+      <td>Five candidate tasks from your own week</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><a href="lessons/0002-how-agents-think.html"><strong>How Agents Think and Act</strong></a></td>
+      <td>What happens between request and result?</td>
+      <td>One task decomposed into the agent loop</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><a href="lessons/0003-context-engineering.html"><strong>Context Engineering</strong></a></td>
+      <td>How do we give an agent the right context?</td>
+      <td>A weak instruction rebuilt properly</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><a href="lessons/0004-tools-and-actions.html"><strong>Tools, Actions and Capabilities</strong></a></td>
+      <td>How does an agent actually <em>do</em> things?</td>
+      <td>A tool map with read/write risk marked</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><a href="lessons/0005-what-is-a-skill.html"><strong>What Exactly Is a Skill?</strong></a></td>
+      <td>What is an Agent Skill, precisely?</td>
+      <td>Your first real <code>SKILL.md</code> draft</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><a href="lessons/0006-designing-a-skill.html"><strong>Designing and Building a Skill</strong></a></td>
+      <td>How do I create a good one?</td>
+      <td>An installed, working Skill</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><a href="lessons/0007-skill-composition.html"><strong>Skill Composition and Workflows</strong></a></td>
+      <td>How do multiple Skills work together?</td>
+      <td>A SkillGraph for a real process</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><a href="lessons/0008-evaluation-and-hitl.html"><strong>Evaluation and Human-in-the-Loop</strong></a></td>
+      <td>How do we know it did the job correctly?</td>
+      <td>Three evaluations, including a refusal case</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td><a href="lessons/0009-skills-by-role.html"><strong>Agent Skills by Profession</strong></a></td>
+      <td>What does this look like in <em>my</em> job?</td>
+      <td>Your Skill specified across seven dimensions</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td><a href="lessons/0010-build-your-own.html"><strong>Build Your Own Agent Skill</strong></a></td>
+      <td>Can I ship one that changes my week?</td>
+      <td>A demonstrable before/after</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Reference documents</h2>
+
+<p>These are the compressed essence — designed for looking things up, and for printing. The lessons
+are read once; these get used repeatedly.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">Ref 01</span>
+    <h5><a href="reference/0001-skill-md-anatomy.html">SKILL.md Anatomy</a></h5>
+    <p>Field constraints, naming, progressive disclosure levels, directory structure, anti-patterns,
+    per-surface installation, security. The one to keep open while writing.</p>
+  </div>
+  <div class="card">
+    <span class="num">Ref 02</span>
+    <h5><a href="reference/0002-glossary.html">Glossary</a></h5>
+    <p>The canonical vocabulary, opinionated — preferred term plus the words to avoid. Adhere to it
+    in every lesson and every team conversation.</p>
+  </div>
+  <div class="card">
+    <span class="num">Ref 03</span>
+    <h5><a href="reference/0003-context-hierarchy.html">Context Hierarchy</a></h5>
+    <p>The seven levels, altitude examples, and the audit questions to ask before blaming the model.</p>
+  </div>
+  <div class="card">
+    <span class="num">Ref 04</span>
+    <h5><a href="reference/0004-failure-modes.html">Failure Modes</a></h5>
+    <p>Seven causes with fixes, Skill-specific symptoms, evaluation dimensions, and where to put the
+    human gate. Use this when something breaks.</p>
+  </div>
+  <div class="card">
+    <span class="num">Ref 05</span>
+    <h5><a href="reference/0005-skill-design-canvas.html">Skill Design Canvas</a></h5>
+    <p>A fillable one-page worksheet. Print one per Skill, and one per person for the team session.</p>
+  </div>
+  <div class="card">
+    <span class="num">Ref 06</span>
+    <h5><a href="reference/0006-composition-patterns.html">Composition Patterns</a></h5>
+    <p>The five relationships between Skills, how to choose, and an honest account of what each
+    costs.</p>
+  </div>
+</div>
+
+<h2>Workspace files</h2>
+
+<ul>
+  <li><strong>MISSION.md</strong> — why this is being learned. Everything traces back to it.</li>
+  <li><strong>RESOURCES.md</strong> — the trusted sources, annotated, with gaps stated explicitly.</li>
+  <li><strong>GLOSSARY.md</strong> — canonical terms, promoted when demonstrated rather than when taught.</li>
+  <li><strong>NOTES.md</strong> — teaching decisions, preferences, and open questions.</li>
+  <li><strong>learning-records/</strong> — what has actually been established, and what it unlocks.</li>
+</ul>
+
+<h2>Two things to know before you start</h2>
+
+<div class="callout synthesis">
+  <span class="label">Where this material is synthesis rather than spec</span>
+  <p>Units 1–6 and 8 teach documented behaviour, cited throughout. <strong>Unit 7</strong>
+  (composition / SkillGraph) and <strong>Unit 9</strong> (role-specific patterns) are original
+  synthesis — there is no authoritative source for either. Both units say so on the page. Keep that
+  labelling when you re-deliver this: it costs nothing and protects your credibility on everything
+  else.</p>
+</div>
+
+<div class="callout warning">
+  <span class="label">A rollout decision to make before the team session</span>
+  <p>Skills do not sync between claude.ai, the API and Claude Code — and on claude.ai custom Skills
+  are <strong>per-user with no admin distribution</strong>. For 21 people that means 21 diverging
+  copies within a quarter unless you choose a canonical home first: a git repository with Claude
+  Code's project directory, or an API workspace. Details in
+  <a href="lessons/0010-build-your-own.html">Unit 10</a>.</p>
+</div>
+
+<div class="ask">
+  <strong>I am your teacher for this course.</strong> Ask me anything at any point — to work through
+  your real examples rather than mine, to review a <code>SKILL.md</code> you have drafted, to diagnose
+  an output that came out wrong, or to help prepare the team session. That is what I am here for, and
+  it is where the most learning happens.
+</div>
+
+<nav class="lesson-nav">
+  <span class="spacer"></span>
+  <a href="lessons/0001-what-is-an-agent.html">Start with Unit 1 →</a>
+</nav>
+
+</main>
+<script src="assets/lesson.js"></script>
+</body>
+</html>
