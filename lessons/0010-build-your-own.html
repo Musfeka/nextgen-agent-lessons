@@ -1,1 +1,266 @@
-<html><body><h1>Lesson 10: Build Your Own</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 10 — Build Your Own Agent Skill</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 10 of 10 · Capstone</p>
+  <h1>Build Your Own Agent Skill</h1>
+  <p class="question">Can I take one repetitive task from my week and turn it into something reusable?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 90 minutes, spread over a week</span>
+    <span><strong>You will produce</strong> a working, installed, evaluated Skill and a before/after demo</span>
+    <span><strong>Prerequisites</strong> Units 1–9</span>
+  </div>
+</header>
+
+<p class="lede">Everything so far has been preparation for this. The deliverable is not knowledge about
+Skills — it is a Skill, installed, tested against real inputs, with evidence that it changed the
+work. Work through the nine steps in order; each one has a checklist you can tick and a place to put
+your answer.</p>
+
+<div class="callout insight">
+  <span class="label">The standard to hold yourself to</span>
+  <p>You are done when a colleague can use your Skill on <em>their</em> input, without asking you a
+  question, and get output you would be willing to sign. Not when the file exists.</p>
+</div>
+
+<h2>Step 1 · Identify the task</h2>
+
+<p>Return to your Unit 1 list and your Unit 4 tool map. Score each candidate honestly:</p>
+
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>I do this at least weekly</label></li>
+  <li><input type="checkbox"><label>Doing it well needs knowledge that is <em>ours</em>, not general</label></li>
+  <li><input type="checkbox"><label>Someone can tell whether the output is good</label></li>
+  <li><input type="checkbox"><label>It is reviewing or checking work, rather than generating from nothing</label></li>
+  <li><input type="checkbox"><label>Getting it wrong is recoverable — nothing irreversible on the first build</label></li>
+</ul>
+
+<p>Five ticks means build it. Three or fewer means pick a different candidate — you will learn more
+from a small win than a stalled ambitious one.</p>
+
+<h2>Step 2 · Decompose it</h2>
+
+<p>Input → activities → decisions → output, as in Unit 2. Be specific about where <em>judgement</em>
+happens, because that is what you are encoding.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="INPUT: &#10;&#10;ACTIVITIES:&#10;1. &#10;2. &#10;3. &#10;&#10;DECISIONS (where judgement is applied):&#10;- &#10;&#10;OUTPUT: "></textarea>
+  <button class="btn" data-check>Check my decomposition</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Input specified precisely", "re": "input"},
+    {"label": "At least three activities", "re": "3\\s*[\\).:-]"},
+    {"label": "Decision or judgement points identified", "re": "decision|judg|decide|choose|assess|determine|when to|if "},
+    {"label": "Output specified", "re": "output"}
+  ]
+  </script>
+</div>
+
+<h2>Step 3 · Establish your baseline <span style="font-weight:400;color:var(--accent)">— do not skip</span></h2>
+
+<div class="callout warning">
+  <span class="label">This is the step everyone skips and later regrets</span>
+  <p>Before writing a single line of the Skill, run the task with Claude using <strong>no Skill at
+  all</strong>. Save the output. Write down exactly what it got wrong, what you had to explain, and
+  what you had to fix by hand.</p>
+  <p>Two reasons. First, those failures <em>are</em> your Skill's specification — you now know precisely
+  what to close. Second, this is your before/after evidence for Step 9. Without it you will be
+  presenting a feeling.</p>
+</div>
+
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>Ran the real task with no Skill, on real input</label></li>
+  <li><input type="checkbox"><label>Saved the raw output somewhere I can show people</label></li>
+  <li><input type="checkbox"><label>Listed every specific thing it got wrong or missed</label></li>
+  <li><input type="checkbox"><label>Noted everything I had to explain that a colleague would already know</label></li>
+</ul>
+
+<h2>Step 4 · Identify the required context</h2>
+
+<p>Run the Unit 3 test on every candidate line. Keep only what is genuinely yours.</p>
+
+<div class="compare">
+  <div class="no">
+    <h5>Cut it — knowledge</h5>
+    <p>Definitions of standard terms. Explanations of why quality matters. How the general practice
+    works. Encouragement to be thorough.</p>
+  </div>
+  <div class="yes">
+    <h5>Keep it — context</h5>
+    <p>Your templates. Your thresholds. Your naming conventions. The client's quirks. What broke last
+    time. The rule everyone knows but nobody wrote down.</p>
+  </div>
+</div>
+
+<h2>Step 5 · Define the Skill</h2>
+
+<p>Eight elements. Most are one line. Resist the urge to write a document.</p>
+
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label><strong>Purpose</strong> — what work it does, in one clause</label></li>
+  <li><input type="checkbox"><label><strong>Trigger</strong> — the "Use when…" half of the description, with the words people actually type</label></li>
+  <li><input type="checkbox"><label><strong>Input</strong> — precisely what must be present</label></li>
+  <li><input type="checkbox"><label><strong>Instructions</strong> — numbered process, checklist if over four steps</label></li>
+  <li><input type="checkbox"><label><strong>Rules</strong> — stated as MUST and NEVER, not "try to"</label></li>
+  <li><input type="checkbox"><label><strong>Tools</strong> — named, with read/write marked</label></li>
+  <li><input type="checkbox"><label><strong>Output</strong> — the exact shape, as a template</label></li>
+  <li><input type="checkbox"><label><strong>Failure conditions</strong> — what to do when it cannot proceed, and what it must never invent</label></li>
+</ul>
+
+<h2>Step 6 · Build it</h2>
+
+<p>Write the file. Use the Claude A / Claude B method from Unit 6 — draft with me, then test in a
+fresh session. Expect to delete a third of the first draft.</p>
+
+<div class="callout spec">
+  <span class="label">Where the file goes</span>
+  <p><strong>Claude Code:</strong> <code>~/.claude/skills/&lt;your-skill-name&gt;/SKILL.md</code> for
+  personal use, or <code>.claude/skills/&lt;your-skill-name&gt;/SKILL.md</code> inside a project repo
+  to share it with everyone who clones that repo.</p>
+  <p><strong>claude.ai:</strong> zip the folder, upload via Settings → Features.
+  <strong>API:</strong> upload through the Skills API — workspace-wide.</p>
+</div>
+
+<div class="callout warning">
+  <span class="label">A rollout constraint to decide now, not in month two</span>
+  <p>Skills <strong>do not sync between surfaces</strong>, and on claude.ai custom Skills are
+  <em>per user</em> — there is no admin distribution and no central management. For a 21-person
+  rollout that matters enormously.</p>
+  <p>If you want one canonical version everyone gets: put Skills in a <strong>git repository</strong>
+  and use Claude Code's project directory, or distribute through the <strong>API workspace</strong>.
+  If people upload zips to claude.ai individually, you will have twenty-one diverging copies within a
+  quarter. Decide this before the training, not after.</p>
+</div>
+
+<h2>Step 7 · Test on real inputs</h2>
+
+<p>Your three evaluations from Unit 8. Real material, not invented examples.</p>
+
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>Typical case — a normal, well-formed input</label></li>
+  <li><input type="checkbox"><label>Degraded case — something missing or ambiguous</label></li>
+  <li><input type="checkbox"><label>Refusal case — something it should decline to do or flag rather than answer</label></li>
+  <li><input type="checkbox"><label>Ran the typical case three times to check <em>consistency</em></label></li>
+  <li><input type="checkbox"><label>Tested with every model the team will actually use</label></li>
+  <li><input type="checkbox"><label>A colleague ran it on their own input, unaided by me</label></li>
+</ul>
+
+<h2>Step 8 · Evaluate and improve</h2>
+
+<p>Score against Unit 8's dimensions. Be specific — "good" is not a score.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="ACCURACY:      Everything it stated was traceable to the input. No invented values.&#10;COMPLETENESS:  Missed 1 of 7 criteria on eval 2 — the one phrased as a negative.&#10;CONSISTENCY:   Three runs, same structure, minor wording variation. Acceptable.&#10;RELEVANCE:     Answered the actual question in all three.&#10;COMPLIANCE:    Followed our table format exactly.&#10;EXPLAINABILITY: Gave a rationale per row. Two were thin.&#10;&#10;CHANGE MADE:   Added an explicit step to restate negatively-phrased criteria first."></textarea>
+  <button class="btn" data-check>Check my evaluation</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Accuracy assessed", "re": "accura"},
+    {"label": "Completeness assessed", "re": "complete"},
+    {"label": "Consistency assessed across repeated runs", "re": "consist"},
+    {"label": "Compliance with your format assessed", "re": "complian|format|template|standard"},
+    {"label": "Explainability assessed", "re": "explain|rationale|reason|why|justif"},
+    {"label": "Findings are specific, not vague praise", "re": "\\d|missed|failed|wrong|except|but |however|thin|only|instead"},
+    {"label": "A concrete change was made in response", "re": "change|added|removed|revis|rewrote|updat|fixed|tighten|clarif"}
+  ]
+  </script>
+</div>
+
+<h2>Step 9 · Demonstrate</h2>
+
+<p>The deliverable for your team session. Five minutes each, and the structure matters more than the
+polish:</p>
+
+<ol class="steps">
+  <li><strong>The task</strong><br>What you do, how often, how long it takes.</li>
+  <li><strong>Before</strong><br>The raw baseline output from Step 3. Show the actual failures.</li>
+  <li><strong>The Skill</strong><br>Show the file on screen. It is shorter than people expect — that
+  is part of the lesson.</li>
+  <li><strong>After</strong><br>The same input, with the Skill. Point at the specific differences.</li>
+  <li><strong>What still needs a human</strong><br>Name the gate and why it is there. This is the part
+  that earns senior trust, and the part most presenters leave out.</li>
+</ol>
+
+<div class="callout insight">
+  <span class="label">Coach your team on step 5</span>
+  <p>A demo that says "and it does the whole thing now" makes cautious people more cautious. A demo
+  that says "it does these four steps, and a human still approves scope before anything reaches the
+  client" makes them relax. Honesty about limits is what gets a rollout approved.</p>
+</div>
+
+<h2>Final checklist</h2>
+
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>The Skill is installed and triggers without me naming it</label></li>
+  <li><input type="checkbox"><label>Description says what it does <em>and</em> when to use it, in third person</label></li>
+  <li><input type="checkbox"><label><code>name</code> is lowercase-with-hyphens, gerund form, under 64 characters</label></li>
+  <li><input type="checkbox"><label>Body is under 500 lines and contains nothing Claude already knows</label></li>
+  <li><input type="checkbox"><label>Failure handling is explicit — it knows what never to invent</label></li>
+  <li><input type="checkbox"><label>Any bundled files are referenced one level deep from SKILL.md</label></li>
+  <li><input type="checkbox"><label>Three evaluations exist, including a refusal case</label></li>
+  <li><input type="checkbox"><label>A baseline is saved and the before/after is demonstrable</label></li>
+  <li><input type="checkbox"><label>The human gate is placed, and I can justify where</label></li>
+  <li><input type="checkbox"><label>A colleague has used it successfully without my help</label></li>
+  <li><input type="checkbox"><label>I know where the canonical copy lives and how the team gets updates</label></li>
+</ul>
+
+<h2>What comes after this course</h2>
+
+<p>Three directions, in the order I would take them:</p>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">Next</span>
+    <h5>A second Skill that reviews the first</h5>
+    <p>The Unit 7 review loop. Cheapest real quality improvement available to you.</p>
+  </div>
+  <div class="card">
+    <span class="num">Then</span>
+    <h5>A shared repository</h5>
+    <p>One canonical home, reviewed like code. Solves the divergence problem before it starts.</p>
+  </div>
+  <div class="card">
+    <span class="num">Later</span>
+    <h5>Bundled reference files</h5>
+    <p>Move your standards into level 3 files so they can be maintained without touching Skills.</p>
+  </div>
+</div>
+
+<div class="source">
+  <span class="label">Reference for the build</span>
+  <p><a href="https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf">The Complete Guide to Building Skills for Claude</a> (PDF) — the long-form companion, and a good handout for the team session.</p>
+  <p>Plus <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">Skill authoring best practices</a> open in a tab while you write. The checklist at the bottom of that
+  page is the one this unit's final checklist is adapted from.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0005-skill-design-canvas.html">Skill design canvas — print one per person for the session</a> ·
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy</a> ·
+  <a href="../index.html">Course index</a>
+</p>
+
+<div class="ask">
+  <strong>This is where I am most useful.</strong> Bring me the task and I will build it with you —
+  draft, cut, test, diagnose, revise. And when you are preparing the team session, bring me the demo:
+  I will tell you which parts will convince a sceptical senior colleague and which will not.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0009-skills-by-role.html">← Unit 9</a>
+  <span class="spacer"></span>
+  <a href="../index.html">Course index →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
