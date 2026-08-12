@@ -1,1 +1,153 @@
-<html><body><h1>Lesson 11: Advanced Orchestration</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 11 — Multi-Agent Systems & Subagent Delegation</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 11 · Advanced Topology</p>
+  <h1>Multi-Agent Systems & Subagent Delegation</h1>
+  <p class="question">When does a single agent reading multiple Skills fail, and how do subagents solve context bloat?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 20 minutes</span>
+    <span><strong>You will be able to</strong> architect a Supervisor-Worker agent topology with isolated context windows</span>
+    <span><strong>Prerequisites</strong> <a href="0007-skill-composition.html">Unit 7</a></span>
+  </div>
+</header>
+
+<div class="callout synthesis">
+  <span class="label">Read this first — the core distinction</span>
+  <p>In Unit 7, you learned <strong>Skill Chaining</strong>: one single agent reading multiple instruction manuals (Skills) in sequence. <strong>Subagent Delegation</strong> steps up to a <strong>Multi-Agent System</strong>: a Supervisor Agent spawns independent Subagents, giving each subagent its own isolated memory and specialized tools.</p>
+</div>
+
+<h2>11.1 The limits of single-agent skill chaining</h2>
+
+<p>When one agent executes 5 or 6 Skills in a single conversation thread, it hits a hard bottleneck: <strong>Context Bloat</strong>.</p>
+
+<div class="flow">
+  <span class="node">Raw Input Data</span><span class="arr">→</span>
+  <span class="node">Skill A (Log Analysis)</span><span class="arr">→</span>
+  <span class="node">Skill B (Bug Fix)</span><span class="arr">→</span>
+  <span class="node hi">Massive Memory Window (Distraction & Failure)</span>
+</div>
+
+<p>Every raw search log, stack trace, and scratch file remains inside the primary agent's context window. By step 4, the agent becomes slow, costly, and suffers from <em>lost in the middle</em> syndrome—forgetting original user constraints.</p>
+
+<h2>11.2 The Supervisor-Worker Topology</h2>
+
+<p>The solution is the <strong>Supervisor-Worker (Orchestrator-Subagent) pattern</strong>. Instead of one agent doing all the dirty work, a Manager Agent delegates sub-tasks to specialized worker subagents.</p>
+
+<div class="table-scroll">
+<table>
+  <caption>Single-Agent Chaining vs. Multi-Agent Subagent Delegation</caption>
+  <thead><tr><th>Dimension</th><th>Single Agent (Skill Chaining)</th><th>Multi-Agent (Supervisor-Worker)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Execution Model</strong></td>
+      <td>One AI brain loading multiple Skills sequentially.</td>
+      <td>One Manager AI spawning isolated Worker Subagents.</td>
+    </tr>
+    <tr>
+      <td><strong>Memory / Context</strong></td>
+      <td><strong>Shared Context</strong> (cluttered with all intermediate data).</td>
+      <td><strong>Isolated Context</strong> (subagent memory drops upon completion).</td>
+    </tr>
+    <tr>
+      <td><strong>Tool Safety</strong></td>
+      <td>All tools are available to the single agent at all times.</td>
+      <td>Subagents receive only task-specific read/write tools.</td>
+    </tr>
+    <tr>
+      <td><strong>Cost & Latency</strong></td>
+      <td>Context grows larger and more expensive with each turn.</td>
+      <td>Subagents process heavy data separately and return condensed summaries.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <span class="label">The Restaurant Kitchen Analogy</span>
+  <p>Think of single-agent chaining as an <strong>Executive Chef</strong> who cooks the soup, grills the steak, bakes the dessert, and washes the dishes all at one counter. Things quickly get messy.</p>
+  <p>Subagent delegation is an <strong>Executive Chef (Supervisor)</strong> calling out orders to a <strong>Salad Chef (Subagent A)</strong> and a <strong>Pastry Chef (Subagent B)</strong>. Each station works independently and hands back clean, finished dishes to the Supervisor.</p>
+</div>
+
+<h2>11.3 Context Isolation & Memory Control</h2>
+
+<p>The primary superpower of Subagent Delegation is <strong>Context Isolation</strong>:</p>
+
+<ul>
+  <li><strong>Spawning</strong>: The Supervisor invokes a subagent with a targeted prompt and specific role.</li>
+  <li><strong>Execution</strong>: The subagent opens 50 files, runs 10 tests, and parses logs within its own temporary context window.</li>
+  <li><strong>Aggregation</strong>: The subagent condenses its work into a clear summary or diff, returning it to the Supervisor.</li>
+  <li><strong>Clean Slate</strong>: The subagent's temporary context vanishes, leaving the Supervisor's context window light, focused, and fast.</li>
+</ul>
+
+<h2>11.4 Designing a Subagent Team</h2>
+
+<div class="role-strip">
+  <div class="role-head">Common Multi-Agent Subagent Topologies</div>
+  <div class="role-row"><div class="who">Research</div><div class="what">Supervisor → <em>spawns</em> → Codebase Searcher + Web Docs Researcher → <em>synthesizes</em> → Tech Specs</div></div>
+  <div class="role-row"><div class="who">Development</div><div class="what">Supervisor → <em>spawns</em> → Feature Implementation Subagent → <em>reviewed by</em> → Test Suite Subagent</div></div>
+  <div class="role-row"><div class="who">Marketing</div><div class="what">Supervisor → <em>spawns</em> → Competitor Analysis Subagent + SEO Keyword Subagent → <em>merges into</em> → Content Brief</div></div>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>What is the main problem solved by delegating tasks to Subagents rather than chaining skills in a single agent?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Correct! Subagents run in isolated memory context windows, preventing massive stack traces and intermediate data from cluttering the main conversation.">Context bloat and memory window clutter.</button>
+      <button class="opt" data-fb="Incorrect. Single agents can use tools just fine; subagents prevent memory overload during heavy work.">Single agents cannot use external tools.</button>
+      <button class="opt" data-fb="Incorrect. Skills are loaded by both single agents and subagents; subagents isolate context execution.">Skills cannot be executed sequentially by one agent.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>What does a Subagent return to the Supervisor Agent when its task completes?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Correct! The subagent processes heavy intermediate steps locally and returns only a concise summary or diff to keep the supervisor's context clean.">A condensed summary or structured result.</button>
+      <button class="opt" data-fb="Incorrect. Returning every single line of intermediate output would defeat the purpose of context isolation.">Its entire raw execution transcript and log history.</button>
+      <button class="opt" data-fb="Incorrect. Subagents communicate back to the supervisor that spawned them.">Nothing, it outputs directly to the user.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Activity: design your Subagent Team</h2>
+
+<p>Take one heavy workflow from your team that involves researching, generating, and verifying. Map out the Supervisor and at least two Subagents with their roles.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="Process: Full Feature Pull Request Review&#10;&#10;SUPERVISOR: PR Review Lead Agent&#10;&#10;SUBAGENT 1 (Role: Code Security Auditor):&#10;- Task: Inspect code diffs for SQL injection and security vulnerabilities&#10;- Return: Risk score & vulnerability summary&#10;&#10;SUBAGENT 2 (Role: Unit Test Runner):&#10;- Task: Run test suite and check code coverage&#10;- Return: Test pass/fail matrix&#10;&#10;SUPERVISOR ACTION: Merges subagent summaries into final PR approval decision."></textarea>
+  <button class="btn" data-check>Check my multi-agent design</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Names a Supervisor agent", "re": "supervisor|lead|manager|orchestrator|coordinator"},
+    {"label": "At least two Subagents defined", "re": "subagent.*subagent|worker.*worker|agent 1.*agent 2|sub-agent.*sub-agent"},
+    {"label": "Explicit task delegation mentioned", "re": "inspect|run|check|search|analyze|review|audit|generate"},
+    {"label": "Return summary specified for subagents", "re": "return|result|summary|matrix|output|score|report|diff"}
+  ]
+  </script>
+</div>
+
+<nav class="lesson-nav">
+  <a href="0010-build-your-own.html">← Unit 10</a>
+  <span class="spacer"></span>
+  <a href="../index.html">Course Index →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
