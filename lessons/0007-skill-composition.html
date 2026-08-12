@@ -1,1 +1,278 @@
-<html><body><h1>Lesson 7: Skill Composition</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7 — Skill Composition and Agent Workflows</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 7 of 10</p>
+  <h1>Skill Composition and Agent Workflows</h1>
+  <p class="question">How do multiple Skills work together on one real piece of work?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 16 minutes</span>
+    <span><strong>You will be able to</strong> map a work process into a SkillGraph with the right pattern per edge</span>
+    <span><strong>Prerequisites</strong> <a href="0006-designing-a-skill.html">Unit 6</a></span>
+  </div>
+</header>
+
+<div class="callout synthesis">
+  <span class="label">Read this first — what kind of unit this is</span>
+  <p>Units 1–6 taught documented behaviour. This unit is <strong>synthesis</strong>. "SkillGraph" is
+  not an Anthropic term and there is no official specification for composing Skills. What follows maps
+  the five documented <em>workflow patterns</em> from <a href="https://www.anthropic.com/engineering/building-effective-agents">Building
+  Effective AI Agents</a> onto Skills, plus your own framing.</p>
+  <p>It is sound and useful — but when you teach it, label it as your model, not as spec. Your
+  technical people will respect the distinction, and it protects your credibility on everything else.</p>
+</div>
+
+<h2>7.1 One request, several Skills</h2>
+
+<p>Real work rarely fits one Skill. Your outline's example is the canonical one:</p>
+
+<div class="flow">
+  <span class="node">Business requirement</span><span class="arr">→</span>
+  <span class="node">Requirement analysis</span><span class="arr">→</span>
+  <span class="node">User story</span><span class="arr">→</span>
+  <span class="node">Acceptance criteria</span><span class="arr">→</span>
+  <span class="node">Test scenario</span><span class="arr">→</span>
+  <span class="node">Test case</span><span class="arr">→</span>
+  <span class="node hi">Test review</span>
+</div>
+
+<p>Six Skills, each atomic, each independently useful. Together they cover a process that currently
+takes your team days and three handovers.</p>
+
+<div class="callout insight">
+  <span class="label">Why composition is automatic, not configured</span>
+  <p>You do not wire these together. Each Skill's <code>description</code> declares when it applies;
+  the agent selects as the work moves. Composition emerges from good descriptions.</p>
+  <p>Which is why Unit 5 hammered the boundary test: <strong>if two descriptions overlap, composition
+  becomes unpredictable.</strong> Sloppy boundaries do not fail visibly — they fail as inconsistency.</p>
+</div>
+
+<h2>7.2 The five relationships between Skills</h2>
+
+<div class="table-scroll">
+<table>
+  <caption>Composition patterns, and the documented workflow pattern each corresponds to</caption>
+  <thead><tr><th>Pattern</th><th>Shape</th><th>Use when</th><th>Documented as</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Sequential</strong></td>
+      <td>A → B → C</td>
+      <td>Each step needs the previous one's output. Fixed order.</td>
+      <td>Prompt chaining</td>
+    </tr>
+    <tr>
+      <td><strong>Conditional</strong></td>
+      <td>A → (B or C)</td>
+      <td>The input type decides what happens next.</td>
+      <td>Routing</td>
+    </tr>
+    <tr>
+      <td><strong>Parallel</strong></td>
+      <td>A → B and C → merge</td>
+      <td>Independent work, or several views of the same thing.</td>
+      <td>Parallelization</td>
+    </tr>
+    <tr>
+      <td><strong>Delegated</strong></td>
+      <td>A → {B…n} → A</td>
+      <td>The number of subtasks is not known in advance.</td>
+      <td>Orchestrator-workers</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewed</strong></td>
+      <td>A ⇄ B, looping</td>
+      <td>Clear criteria exist and iteration measurably improves output.</td>
+      <td>Evaluator-optimizer</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Sequential — the default</h3>
+<p>The requirement chain above. The essential design question is what passes between stages. A
+handover that loses the rationale ("why is this criterion here?") produces test cases nobody can
+defend. State the handoff format in each Skill's output section.</p>
+
+<h3>Conditional — routing by input</h3>
+<p><em>"If the requirement is a business rule, use the rule-extraction Skill. If it is
+non-functional, use the NFR Skill."</em> This is where atomic Skills earn their keep — routing is
+only possible when the destinations are distinct.</p>
+
+<h3>Parallel — two flavours</h3>
+<ul>
+  <li><strong>Sectioning</strong> — genuinely independent subtasks at once. A PM's risk analysis and
+  dependency analysis do not need each other.</li>
+  <li><strong>Voting</strong> — the same task several times for confidence. Three independent
+  security reviews of one change catch more than one review does.</li>
+</ul>
+
+<h3>Delegated — when you cannot know the shape in advance</h3>
+<p>"Analyse this 90-page RFP" — nobody knows how many sections need deep work until it is opened. A
+coordinating agent decides, dispatches, and synthesises. Anthropic's own account of building this at
+production scale is in <a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built our
+multi-agent research system</a>, including what went wrong; worth reading before you promise it to
+anyone.</p>
+
+<p class="sidenote">There is a real cost here. Sub-agents each burn their own context and return a
+condensed summary — powerful, but multiplying token spend. Use when the task genuinely cannot be
+predicted, not because it sounds sophisticated.</p>
+
+<h3>Reviewed — the pattern with the best return</h3>
+<p>One Skill produces, another critiques against explicit criteria, the first revises. The
+<code>reviewing-test-cases</code> Skill at the end of the chain is not decoration — it is the loop
+that manufactures ground truth for work that otherwise has none. If you build only one composition
+pattern, build this.</p>
+
+<h2>7.3 Prerequisites and dependencies</h2>
+
+<p>Some Skills genuinely cannot run without a predecessor's output. <code>generating-test-cases</code>
+needs acceptance criteria to exist.</p>
+
+<p>There is no dependency declaration in the format. You express it in two ordinary ways:</p>
+
+<ul>
+  <li><strong>In the description</strong> — scope the trigger: <em>"Use when acceptance criteria are
+  available."</em></li>
+  <li><strong>In the body, as failure handling</strong> — <em>"If no acceptance criteria are present,
+  stop and say so. Do not infer them."</em></li>
+</ul>
+
+<p>That second line is doing dependency management with nothing but a sentence, and it is the reason
+Unit 6 pushed failure handling so hard.</p>
+
+<h2>7.4 The agent as orchestrator</h2>
+
+<p>Here is the conceptual shift your outline correctly identifies as the important one:</p>
+
+<blockquote>
+  <p>The agent doesn't need to know everything. It needs to know which capability to invoke and when.</p>
+  <cite>Your outline — and it is exactly right</cite>
+</blockquote>
+
+<p>This reframes what you are building. You are not making the agent smarter. You are building an
+organisation's <em>capability library</em> and letting the agent route through it. The agent supplies
+judgement about <em>which</em>; your Skills supply the standards for <em>how</em>.</p>
+
+<div class="callout warning">
+  <span class="label">The restraint clause</span>
+  <p>Everything in this unit is more complex than a single Skill, and the published guidance is
+  unambiguous: <em>"consider adding complexity only when it demonstrably improves outcomes."</em></p>
+  <p>Most teams should build three good atomic Skills and one review loop before touching delegation
+  or parallelism. Composition that emerges from clean boundaries is free. Composition you engineer is
+  not.</p>
+</div>
+
+<div class="role-strip">
+  <div class="role-head">A two-Skill starting graph for each role — build this, not the ten-node version</div>
+  <div class="role-row"><div class="who">BA</div><div class="what">analyzing-requirement-gaps → <em>reviewed by</em> → checking-requirement-quality</div></div>
+  <div class="role-row"><div class="who">SQA</div><div class="what">generating-test-scenarios → <em>reviewed by</em> → reviewing-test-coverage</div></div>
+  <div class="role-row"><div class="who">UX</div><div class="what">running-heuristic-review → <em>reviewed by</em> → checking-critique-evidence</div></div>
+  <div class="role-row"><div class="who">Dev</div><div class="what">reviewing-pull-requests → <em>reviewed by</em> → checking-review-completeness</div></div>
+  <div class="role-row"><div class="who">PM</div><div class="what">drafting-status-reports → <em>reviewed by</em> → verifying-report-claims</div></div>
+  <div class="role-row"><div class="who">BD</div><div class="what">qualifying-rfps → <em>reviewed by</em> → checking-capability-claims</div></div>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>How do several Skills end up being used on one request?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Emergent selection. Each description declares when its Skill applies; the agent picks as the work moves. This is why overlapping descriptions cause unpredictable composition.">The agent selects each by its own description.</button>
+      <button class="opt" data-fb="There is no linking field in the format. Dependencies are expressed in prose — in the description's scope and in failure handling.">Each Skill names the next one in its frontmatter.</button>
+      <button class="opt" data-fb="No configuration file governs Skill ordering. Composition is a property of good boundaries, not of wiring.">A separate configuration file defines the order.</button>
+      <button class="opt" data-fb="The user should not have to. Being asked to name Skills manually is a symptom of descriptions that do not trigger reliably.">The user names each Skill in the request itself.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>A PM wants risk analysis and dependency analysis on the same plan. Neither needs the other's output. Which pattern?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Parallel — specifically sectioning, independent subtasks running at once and merged. Forcing them into sequence adds latency and buys nothing.">Parallel, since neither depends on the other.</button>
+      <button class="opt" data-fb="Sequential is for genuine dependency, where each step consumes the previous output. That is absent here.">Sequential, running one strictly after the other.</button>
+      <button class="opt" data-fb="Delegation suits tasks whose shape is unknown in advance. Here you know exactly what the two subtasks are.">Delegated, with a coordinator dividing the work.</button>
+      <button class="opt" data-fb="Reviewed is a critique loop between a producer and an evaluator. These two are peers, not producer and critic.">Reviewed, with each critiquing the other's output.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>Your Skill needs acceptance criteria that are not present. Where does the "dependency" actually get enforced?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="In the description's scope and in explicit failure handling. There is no dependency field — a sentence saying 'stop and say so, do not infer them' is the mechanism.">In the description scope and the failure handling.</button>
+      <button class="opt" data-fb="No such field exists in the frontmatter. Only name and description are required, and neither declares prerequisites.">In a prerequisites field within the frontmatter.</button>
+      <button class="opt" data-fb="Skills are not ordered by filename or folder. Selection is driven entirely by description matching.">In the folder ordering of the installed Skills.</button>
+      <button class="opt" data-fb="Nothing blocks automatically. Absent explicit instruction, the model will infer the missing criteria and proceed.">Automatically, since the agent blocks on missing input.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Activity: draw your SkillGraph</h2>
+
+<p>Take one real process from your team — end to end, across handovers if it crosses them. Write each
+node as a Skill name in gerund form, and label each edge with its pattern.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="Process: incoming client change request&#10;&#10;classifying-change-requests&#10;  --conditional--> analyzing-requirement-gaps   (if functional)&#10;  --conditional--> assessing-commercial-impact   (if scope/price)&#10;&#10;analyzing-requirement-gaps&#10;  --sequential--> writing-acceptance-criteria&#10;  --reviewed--> checking-criteria-quality  (loops until clean)&#10;&#10;Human gate: BA lead approves before it reaches the client."></textarea>
+  <button class="btn" data-check>Check the shape of my graph</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "At least three Skills named", "re": "([a-z]+ing-[a-z-]+|[a-z]+-[a-z]+)[\\s\\S]*([a-z]+ing-[a-z-]+|[a-z]+-[a-z]+)[\\s\\S]*([a-z]+ing-[a-z-]+|[a-z]+-[a-z]+)"},
+    {"label": "Skill names use gerund form (-ing)", "re": "\\b[a-z]+ing-[a-z]"},
+    {"label": "At least one edge labelled with a pattern", "re": "sequential|conditional|parallel|delegat|review|routing|chain"},
+    {"label": "A review or check loop exists somewhere", "re": "review|check|verif|validat|critique|quality|audit"},
+    {"label": "A human gate is marked", "re": "human|approv|gate|sign.?off|lead|manager|before.*client|escalat"},
+    {"label": "Names a real process, not a generic example", "re": "client|sprint|release|ticket|epic|rfp|proposal|story|defect|incident|onboard|invoice|campaign|handover|feature"}
+  ]
+  </script>
+</div>
+
+<div class="callout insight">
+  <span class="label">Then cut it down</span>
+  <p>Whatever you drew, find the <strong>two adjacent nodes with the most pain between them</strong>
+  and build only those, with a review loop. A ten-node graph on paper and zero Skills installed helps
+  nobody. Two working Skills and a demonstrable before/after changes minds.</p>
+</div>
+
+<div class="source">
+  <span class="label">Primary source for this unit</span>
+  <p><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective AI Agents</a> — re-read, this time the five workflow-pattern sections in full.</p>
+  <p>Then <a href="https://www.anthropic.com/engineering/multi-agent-research-system">How we built our multi-agent research system</a> if you want the honest version of what multi-agent composition costs in
+  practice. It is the best counterweight available to over-enthusiasm.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0006-composition-patterns.html">Composition patterns — printable card</a> ·
+  <a href="../reference/0002-glossary.html">Glossary</a> ·
+  <a href="0008-evaluation-and-hitl.html">Unit 8 — where the review loop gets teeth</a>
+</p>
+
+<div class="ask">
+  <strong>Show me your graph.</strong> The most common error is drawing a process diagram rather than
+  a Skill graph — nodes that are activities, not capabilities. Paste it and I will tell you which
+  nodes are really one Skill, and where your boundaries will cause unpredictable selection.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0006-designing-a-skill.html">← Unit 6</a>
+  <span class="spacer"></span>
+  <a href="0008-evaluation-and-hitl.html">Unit 8 — Evaluation and human-in-the-loop →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
