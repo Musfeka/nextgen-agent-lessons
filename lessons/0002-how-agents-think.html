@@ -1,1 +1,264 @@
-<html><body><h1>Lesson 2: How Agents Think</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 2 — How Agents Think and Act</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 2 of 10</p>
+  <h1>How Agents Think and Act</h1>
+  <p class="question">What is actually happening between your request and the result?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 12 minutes</span>
+    <span><strong>You will be able to</strong> decompose a real request into the steps an agent must take</span>
+    <span><strong>Prerequisites</strong> <a href="0001-what-is-an-agent.html">Unit 1</a></span>
+  </div>
+</header>
+
+<p class="lede">In Unit 1 you learned that an agent decides its own next step. This unit opens the box.
+You need this model for one reason: when a Skill misbehaves later, you cannot fix it unless you know
+which part of the loop broke.</p>
+
+<h2>2.1 The building block: an LLM with augmentations</h2>
+
+<p>Start smaller than "agent." The unit everything is made from is a model that has been given three
+extra things:</p>
+
+<div class="card-grid">
+  <div class="card"><h5>Retrieval</h5><p>It can go and fetch information it was not given — search a repo, read a document.</p></div>
+  <div class="card"><h5>Tools</h5><p>It can take actions in the world — write a file, call an API, run a command.</p></div>
+  <div class="card"><h5>Memory</h5><p>It can carry things forward — notes, prior results, state across steps.</p></div>
+</div>
+
+<p>Anthropic calls this the <span class="term">augmented LLM</span>, and it is the foundation of every
+agentic system. Crucially, the model itself now generates its own search queries and picks its own
+tools — you are not scripting those choices.</p>
+
+<p class="sidenote">This is why "just write a better prompt" stops being sufficient. Once a model is
+choosing its own actions, you are shaping <em>judgement</em>, not output. That is what a Skill does.</p>
+
+<h2>2.2 Perception — what actually reaches the agent</h2>
+
+<p>An agent perceives nothing except what lands in its <span class="term">context window</span>. This
+sounds obvious and is the source of perhaps half of all agent failures.</p>
+
+<div class="callout warning">
+  <span class="label">The most expensive misunderstanding on this course</span>
+  <p>The agent does not know about your project. It does not know last sprint's decision, the client
+  call, the reason that field is nullable, or the standard everyone follows but nobody wrote down.
+  It knows what is in front of it, right now, and nothing else.</p>
+  <p>When a team member says "the AI got it wrong," the honest question is almost always: <em>could
+  anyone have got it right, given only what we gave it?</em></p>
+</div>
+
+<p>What can land there: your request, documents, images, data, the state of a system, and what has
+already happened in this session. Unit 3 is entirely about curating that set deliberately.</p>
+
+<h2>2.3 Reasoning and planning</h2>
+
+<p>Reasoning is the compressed version of <em>understand → analyse → decide</em>. Planning is what
+happens when the goal is too big for one action: the agent breaks it into smaller pieces first.</p>
+
+<p>The practical consequence for you is about <strong>transparency</strong>. Anthropic's guidance
+lists "prioritize transparency through explicit planning steps" as one of three core implementation
+principles. An agent that states its plan before acting is one you can interrupt at the right moment.
+An agent that silently does nine things is one you audit afterwards, which is worse and later.</p>
+
+<h2>2.4 Action, and the thing that makes agents work</h2>
+
+<p>Action is the rung-4 capability from Unit 1: tools, APIs, files, applications, search, running
+code. But the important part is not the acting. It is what comes back.</p>
+
+<blockquote>
+  <p>Agents … execute while receiving "ground truth" feedback from the environment (tool results,
+  code execution) … The process is typically just LLMs using tools based on environmental feedback in
+  a loop.</p>
+  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective AI Agents</a></cite>
+</blockquote>
+
+<p><span class="term">Ground truth</span> is the phrase to hold onto. When an agent runs a test and
+the test fails, that failure is not an opinion. It is reality pushing back. This is why agents are
+dramatically more reliable at tasks with a checkable result — code that compiles, a query that runs,
+a file that validates — than at tasks where nothing can disagree with them.</p>
+
+<div class="callout insight">
+  <span class="label">Design implication you will use in Unit 6</span>
+  <p>If you can give your Skill something that can <em>fail</em> — a checklist to verify against, a
+  validation step, a rule that can be violated — you have converted a task with no feedback into a
+  task with feedback. That single move improves output quality more than any amount of prompt
+  polishing.</p>
+</div>
+
+<h2>2.5 The loop</h2>
+
+<div class="flow">
+  <span class="node">Observe</span><span class="arr">→</span>
+  <span class="node">Think</span><span class="arr">→</span>
+  <span class="node hi">Act</span><span class="arr">→</span>
+  <span class="node">Observe</span><span class="arr">→</span>
+  <span class="node">Adjust</span><span class="arr">↺</span>
+</div>
+
+<p>Two properties of this loop matter enormously in practice.</p>
+
+<p><strong>It has a stopping condition.</strong> Agents pause for human input at checkpoints, or when
+blocked. Left without limits, a loop is a way to spend money and do damage quickly. Where the stop
+goes is a design decision — Unit 8.</p>
+
+<p><strong>Every pass through it costs context.</strong> Each observation lands in the window and
+stays there. This is why long agent runs degrade, and why Unit 3 treats context as a budget rather
+than a container.</p>
+
+<h2>Worked example: "Prepare a test plan for this feature"</h2>
+
+<p>This is the activity from your outline. Here is the decomposition, so you can see the standard
+before doing your own.</p>
+
+<ol class="steps">
+  <li><strong>Read the feature</strong><br>Fetch the ticket and any linked spec. <em>Perception.</em>
+  Without this the agent invents a feature.</li>
+  <li><strong>Find what already exists</strong><br>Search the test repository for related coverage.
+  <em>Retrieval.</em> Skipping this is how you get 40 duplicate test cases.</li>
+  <li><strong>Identify the risk surface</strong><br>What changed, what touches it, what broke here
+  before. <em>Reasoning</em> — and the step most dependent on team knowledge a Skill would supply.</li>
+  <li><strong>Decide scope</strong><br>Which areas get deep coverage, which get a smoke check.
+  <em>Decision.</em> A judgement call your standards should constrain.</li>
+  <li><strong>Draft scenarios, then cases</strong><br>Two passes, not one. <em>Action.</em></li>
+  <li><strong>Check against acceptance criteria</strong><br>Every criterion traced to at least one
+  case. <em>Feedback</em> — this step can fail, which makes it valuable.</li>
+  <li><strong>Hand to a human</strong><br>A Senior SQA approves scope before anyone executes.
+  <em>Stopping condition.</em></li>
+</ol>
+
+<p>Notice steps 3, 4 and 6. Those are the ones where a generic model does adequately and <em>your
+team's</em> Skill would do well. That is where the value of Skills lives.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>An agent writes a status report that confidently states a milestone was hit. It was not. The most likely root cause is…</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Perception. It could not see the real status, so it produced something plausible instead. Before blaming reasoning, always ask what actually reached the context window.">The current status never reached its context.</button>
+      <button class="opt" data-fb="Possible, but far less likely than missing input. Models reason acceptably over facts they hold; they cannot reason over facts they were never given.">The reasoning step drew the wrong conclusion.</button>
+      <button class="opt" data-fb="A stopping condition governs when the loop halts. It would not cause a confident false statement mid-task.">The stopping condition triggered far too early.</button>
+      <button class="opt" data-fb="Tool choice matters, but the symptom here is invention, which points upstream to missing information rather than a mis-picked tool.">The agent selected an inappropriate tool here.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>Why are agents noticeably more reliable at "make this code compile" than at "write a compelling proposal"?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Ground truth. The compiler disagrees; a proposal does not. Wherever you can manufacture something that can fail, you convert a soft task into a checkable one — the core trick of Unit 8.">Compilation gives real feedback that can fail.</button>
+      <button class="opt" data-fb="Code is not inherently simpler than prose, and models are strong writers. The difference is verification, not difficulty.">Writing code is a much simpler task overall.</button>
+      <button class="opt" data-fb="Training data breadth is not the operative difference here. Both are extremely well represented.">Models see far more code during their training.</button>
+      <button class="opt" data-fb="Proposals do have constraints — length, format, compliance. What they lack is an automatic verifier that says no.">Proposals have no constraints on them at all.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>Anthropic names three core principles for implementing agents. Which is one of them?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Transparency through explicit planning steps. The other two are: maintain simplicity, and carefully craft the agent–computer interface through good tool documentation and testing.">Prioritise transparency through explicit planning.</button>
+      <button class="opt" data-fb="The published advice is the opposite: add complexity only when it demonstrably improves outcomes. Simplicity is the stated principle.">Maximise autonomy wherever it is technically possible.</button>
+      <button class="opt" data-fb="Model count is not a principle. Multi-agent designs are one option among several, and often unnecessary.">Always distribute the work across several models.</button>
+      <button class="opt" data-fb="Context is precious rather than plentiful — Unit 3 covers exactly why filling the window degrades performance.">Fill the context window with everything available.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Retrieval cards</h2>
+
+<p>Cover the answer, say it out loud, then click. Effortful recall is what moves this into long-term
+memory — recognising the answer on the page does not.</p>
+
+<div class="recall">
+  <div class="rcard">
+    <div class="front">What are the three augmentations that turn a model into an agent building block?</div>
+    <div class="hint">Click to check</div>
+    <div class="back"><strong>Retrieval, tools, memory.</strong> Together: the augmented LLM.</div>
+  </div>
+  <div class="rcard">
+    <div class="front">State the agent loop in five words.</div>
+    <div class="hint">Click to check</div>
+    <div class="back"><strong>Observe → Think → Act → Observe → Adjust.</strong></div>
+  </div>
+  <div class="rcard">
+    <div class="front">What is "ground truth" feedback?</div>
+    <div class="hint">Click to check</div>
+    <div class="back">Reality pushing back — a tool result or execution outcome that can <strong>contradict</strong> the agent, rather than a human's description of it.</div>
+  </div>
+  <div class="rcard">
+    <div class="front">An agent perceives exactly what?</div>
+    <div class="hint">Click to check</div>
+    <div class="back">Only what is in its <strong>context window</strong>. Nothing about your project is known unless it was put there.</div>
+  </div>
+</div>
+
+<h2>Do this before Unit 3</h2>
+
+<p>Take the first task from your five in Unit 1. Decompose it the way the test plan was decomposed
+above — one line per step, and label each step <em>perception</em>, <em>reasoning</em>,
+<em>action</em> or <em>feedback</em>.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="1. Fetch the incoming RFP document — perception&#10;2. Check it against our capability list — reasoning&#10;3. ..."></textarea>
+  <button class="btn" data-check>Check the shape of my answer</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "At least four steps", "re": "(^|\\n)\\s*4\\s*[\\).:-]"},
+    {"label": "A perception step (getting information in)", "re": "percept|read|fetch|gather|collect|retriev|open|pull|receiv|input"},
+    {"label": "A reasoning or decision step", "re": "reason|analys|analyz|decide|decision|assess|evaluat|judg|classif|prioriti|compar"},
+    {"label": "An action step (something changes)", "re": "action|write|draft|creat|generat|produc|updat|send|save|file|record"},
+    {"label": "A feedback or check step that could fail", "re": "feedback|check|verif|validat|review|confirm|trace|test|approv|against"}
+  ]
+  </script>
+</div>
+
+<div class="callout insight">
+  <span class="label">Why the last rubric item matters most</span>
+  <p>If your decomposition has no step that could fail, you have described a task with no ground
+  truth. That is not a reason to abandon it — but it tells you the Skill will need a human check, and
+  it tells you exactly where to put it.</p>
+</div>
+
+<div class="source">
+  <span class="label">Read this before Unit 3</span>
+  <p><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a> — Anthropic Engineering. Read to the end of "Context is a finite resource". Roughly 8 minutes.</p>
+  <p>Unit 3 is built almost entirely on this article. Reading it first will make that unit feel like
+  confirmation rather than new information — which is exactly what you want before teaching it.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0002-glossary.html">Glossary</a> ·
+  <a href="../reference/0004-failure-modes.html">Agent failure modes</a> ·
+  <a href="0007-skill-composition.html">Unit 7 — where the loop becomes orchestration</a>
+</p>
+
+<div class="ask">
+  <strong>Ask me anything here.</strong> The loop is easy to nod along to and hard to apply. If you
+  want, paste your decomposition and I will tell you which steps are actually judgement calls in
+  disguise — those are the ones your Skill will need to constrain.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0001-what-is-an-agent.html">← Unit 1</a>
+  <span class="spacer"></span>
+  <a href="0003-context-engineering.html">Unit 3 — Context engineering →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
