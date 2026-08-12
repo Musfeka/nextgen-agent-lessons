@@ -1,1 +1,331 @@
-<html><body><h1>Lesson 4: Tools and Actions</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 — Context Engineering</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 3 of 10</p>
+  <h1>Context Engineering</h1>
+  <p class="question">How do we give an agent the right context — and why is "more" the wrong answer?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 15 minutes</span>
+    <span><strong>You will be able to</strong> rewrite a weak instruction using the context hierarchy</span>
+    <span><strong>Prerequisites</strong> <a href="0002-how-agents-think.html">Unit 2</a></span>
+  </div>
+</header>
+
+<p class="lede">This is the load-bearing unit of the course. A Skill is, mechanically, a way of
+delivering the right context at the right moment. If this unit lands, Units 5 and 6 are mostly
+formatting. If it does not, your team will write long, well-meaning Skills that make the agent worse.</p>
+
+<h2>3.1 From prompt engineering to context engineering</h2>
+
+<p>You have probably heard "prompt engineering." The field moved on, and the newer term is more
+useful because it is more honest about what you are actually managing.</p>
+
+<blockquote>
+  <p>Context engineering refers to the set of strategies for curating and maintaining the optimal set
+  of tokens (information) during LLM inference, including all the other information that may land
+  there outside of the prompts.</p>
+  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a></cite>
+</blockquote>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Context engineering</h5>
+    <p>Managing an agent's <em>entire information state</em>, turn after turn, as it loops. Ongoing,
+    cumulative, and mostly about what to leave out.</p>
+  </div>
+  <div class="no">
+    <h5>Prompt engineering</h5>
+    <p>Writing one good instruction, once. Still useful — but it is a subset. It ends when you press
+    enter.</p>
+  </div>
+</div>
+
+<p class="sidenote">The <span class="term">context window</span> is everything the model can see at
+one moment: your instruction, the documents, the conversation so far, tool results, and every Skill
+that has been loaded. Not just what you typed.</p>
+
+<h2>3.2 Why "give it everything" is a losing strategy</h2>
+
+<p>The instinct of every intelligent beginner is to paste in more. It is wrong, and there is a
+specific mechanism.</p>
+
+<div class="callout warning">
+  <span class="label">Context rot</span>
+  <p><em>"As the number of tokens in the context window increases, the model's ability to accurately
+  recall information from that context decreases."</em></p>
+  <p>Adding information you do not need makes the information you <em>do</em> need harder to retrieve.
+  Not neutral. Actively harmful.</p>
+</div>
+
+<p>The cause is architectural. Transformers relate every token to every other token, so <em>n</em>
+tokens create roughly <em>n²</em> pairwise relationships. Stretch that far enough and attention gets
+thin. Anthropic's framing is that models have an <span class="term">attention budget</span> that
+depletes with every token added — much like human working memory.</p>
+
+<p>So the governing principle for everything you write from here on:</p>
+
+<div class="callout insight">
+  <span class="label">Write this on the wall</span>
+  <p><em>"Find the smallest set of high-signal tokens that maximize the likelihood of some desired
+  outcome."</em></p>
+  <p>Not the most context. The <strong>smallest set of the highest-signal</strong> context.</p>
+</div>
+
+<h2>3.3 Context, knowledge, memory — three different things</h2>
+
+<p>Your team will use these interchangeably. Stop that early; it causes real design errors.</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th></th><th>What it is</th><th>Lives where</th><th>Failure looks like</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Knowledge</strong></td>
+      <td>What the model learned in training — English, software concepts, how a test case works.</td>
+      <td>In the model. Free. Always there.</td>
+      <td>Out of date, or generic where you needed specific.</td>
+    </tr>
+    <tr>
+      <td><strong>Context</strong></td>
+      <td>What is in front of it <em>this turn</em> — your request, the document, tool results.</td>
+      <td>The context window. Finite and costly.</td>
+      <td>Missing, stale, or so bloated the signal drowns.</td>
+    </tr>
+    <tr>
+      <td><strong>Memory</strong></td>
+      <td>What deliberately persists <em>across</em> turns or sessions — notes, files, saved state.</td>
+      <td>Outside the window, retrieved on demand.</td>
+      <td>Never written, or written and never read back.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The practical rule that falls out of this table, and the one that most improves people's Skills:
+<strong>never spend context on knowledge.</strong> If the model already knows what a user story is,
+explaining it is pure cost. Spend context only on what is <em>yours</em>.</p>
+
+<h2>3.4 The context hierarchy</h2>
+
+<p>When you assemble context — in a prompt now, in a Skill later — assemble it in this order. It is
+the same order you would brief a competent contractor.</p>
+
+<ol class="steps">
+  <li><strong>Goal</strong><br>What outcome are we producing? One sentence.</li>
+  <li><strong>Role</strong><br>Whose standards apply — a Senior BA? A compliance reviewer?</li>
+  <li><strong>Rules</strong><br>The non-negotiables. What must always or never happen.</li>
+  <li><strong>Knowledge</strong><br>Only what is specific to you: your template, your domain terms,
+  your client's quirks.</li>
+  <li><strong>Inputs</strong><br>The actual material to work on, this time.</li>
+  <li><strong>Constraints</strong><br>Length, format, tone, scope, what to leave alone.</li>
+  <li><strong>Output</strong><br>The exact shape of the deliverable.</li>
+</ol>
+
+<p class="sidenote">Steps 1–4 and 6–7 barely change between runs. Only step 5 changes. That stable
+part <em>is</em> your Skill — which is the entire insight of Unit 5, arrived at from the other
+direction.</p>
+
+<h2>3.5 The right altitude</h2>
+
+<p>There are two ways to write instructions badly, and they are opposites.</p>
+
+<div class="compare">
+  <div class="no">
+    <h5>Too low — brittle</h5>
+    <p>Exhaustive if-this-then-that logic covering every case you imagined. Breaks the moment reality
+    presents case 47. Endless to maintain.</p>
+    <pre><code>If the requirement mentions
+payment, use template A.
+If it mentions login, use
+template B. If it mentions
+both, use template A but…</code></pre>
+  </div>
+  <div class="no">
+    <h5>Too high — vague</h5>
+    <p>Sounds wise, gives no signal. The model has to guess what you meant, and will guess
+    differently each time.</p>
+    <pre><code>Analyse the requirement
+thoroughly and produce a
+high-quality, professional
+output that meets our
+usual standards.</code></pre>
+  </div>
+</div>
+
+<p>The target is what Anthropic calls the Goldilocks zone: <em>"specific enough to guide behavior
+effectively, yet flexible enough to provide the model with strong heuristics."</em></p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Right altitude</h5>
+    <pre><code>For each requirement, identify
+the actor, the trigger, the
+expected outcome and the
+failure behaviour.
+
+Flag any of the four that the
+requirement does not state.
+Never infer a failure
+behaviour that is not written
+down — ask instead.</code></pre>
+    <p style="margin-top:.6rem">Specific about <em>what to look for</em> and <em>what is
+    forbidden</em>. Silent about <em>how</em> to look. That is the balance.</p>
+  </div>
+  <div class="yes">
+    <h5>Why it works</h5>
+    <p>It gives the model four concrete hooks, one hard rule with a stated escape hatch, and trusts
+    it with everything else.</p>
+    <p>It also survives contact with a requirement type you did not anticipate — the brittle version
+    does not.</p>
+  </div>
+</div>
+
+<h2>3.6 Garbage context → garbage reasoning → garbage outcome</h2>
+
+<p>Worth saying plainly to a professional audience: when an agent produces a bad output, the fault is
+usually upstream. Before rewriting instructions, ask in order —</p>
+
+<ul>
+  <li>Was the necessary information <em>present</em>? (Perception.)</li>
+  <li>Was it <em>findable</em>, or buried in 40 pages of irrelevance? (Context rot.)</li>
+  <li>Was it <em>current</em>, or a stale copy of the spec?</li>
+  <li>Did it <em>contradict</em> something else in the window?</li>
+</ul>
+
+<p>That last one is the quiet killer. Two versions of a requirement in one context does not average
+them out; it makes behaviour unpredictable.</p>
+
+<div class="role-strip">
+  <div class="role-head">The same failure, in six jobs</div>
+  <div class="role-row"><div class="who">BA</div><div class="what">Old and new BRD both in context. The agent cites the superseded acceptance criteria.</div></div>
+  <div class="role-row"><div class="who">SQA</div><div class="what">Whole 200-page test suite pasted in "for reference". It misses the two relevant existing cases.</div></div>
+  <div class="role-row"><div class="who">UX</div><div class="what">Research quotes given with no product context. The persona is plausible and useless.</div></div>
+  <div class="role-row"><div class="who">Dev</div><div class="what">Reviewing a diff with no sight of the interface it implements. Style feedback only.</div></div>
+  <div class="role-row"><div class="who">PM</div><div class="what">Status from three sources that disagree. The report confidently picks one.</div></div>
+  <div class="role-row"><div class="who">BD</div><div class="what">RFP given without the capability list. It promises something you cannot deliver.</div></div>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>A colleague pastes an entire 90-page product manual into the context "so the agent has everything." What is the most likely effect on quality?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Context rot. Recall accuracy falls as the window fills, so the pages that mattered become harder to find. More context is not free — it is paid for out of the attention budget.">It falls, because recall degrades as tokens grow.</button>
+      <button class="opt" data-fb="Extra material is not inert. It competes for attention with the material that matters, which is precisely the finding behind context rot.">It stays flat, since extra material is ignored.</button>
+      <button class="opt" data-fb="This is the intuition to unlearn. Completeness is not the objective — signal density is.">It rises, because completeness always helps here.</button>
+      <button class="opt" data-fb="Cost and latency do rise, but the important effect is on answer quality, not just the bill.">It only changes cost, never the answer quality.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>Which of these should you <em>not</em> spend context explaining to the model?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="That is knowledge — already in the model, free, always available. Spending tokens on it costs you and buys nothing. Spend context only on what is specific to you.">What a user story generally is and does.</button>
+      <button class="opt" data-fb="This is exactly what context is for. Your definition of done is yours; the model cannot know it.">Your team's specific definition of done.</button>
+      <button class="opt" data-fb="Client quirks are the highest-value context you have. Nobody outside your team could possibly know them.">The client who always omits compliance.</button>
+      <button class="opt" data-fb="Your output template is yours. Without it the model invents a reasonable format that is not your format.">The exact template your reports must follow.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>"Analyse this thoroughly and produce a professional result." What is wrong with this instruction?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Wrong altitude — too high. It sounds like direction but contains no signal about what to look for or what is forbidden, so the model guesses, differently each time.">It is pitched too high to guide any behaviour.</button>
+      <button class="opt" data-fb="Brittleness is the opposite failure — exhaustive if/then logic that breaks on unanticipated cases. This instruction has no logic at all.">It is far too brittle to survive unusual cases.</button>
+      <button class="opt" data-fb="Length is not the problem; a short instruction can be excellent. This one is short and empty, which are different faults.">It is much too short to be taken seriously.</button>
+      <button class="opt" data-fb="Politeness has no bearing on output quality. Specificity does.">It is not phrased politely enough to work well.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">4</span>In the context hierarchy, which element is the one that genuinely changes on every run?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Inputs. Goal, role, rules, knowledge, constraints and output shape stay stable — and that stable remainder is precisely what becomes a Skill.">Inputs — the material being worked on now.</button>
+      <button class="opt" data-fb="Rules are your non-negotiables. If they change every run they were never rules.">Rules — the non-negotiables being applied.</button>
+      <button class="opt" data-fb="The output shape should be stable, which is why it belongs in a Skill rather than being restated each time.">Output — the shape the deliverable takes.</button>
+      <button class="opt" data-fb="Role is stable by definition. Whose standards apply does not change task to task.">Role — whose standards are being applied.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Activity: repair a bad instruction</h2>
+
+<p>Here is a real-shaped, genuinely poor instruction. It is the kind your team will write in week one.</p>
+
+<pre class="bad"><code>Look at the attached document and give me some test cases.
+Make them good and cover everything important. Use your
+judgement. Format it nicely.</code></pre>
+
+<p><strong>Rewrite it using the seven-level hierarchy.</strong> Do not make it longer for the sake of
+it — make it higher-signal. A strong answer here is often shorter than you expect.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="GOAL:&#10;ROLE:&#10;RULES:&#10;KNOWLEDGE:&#10;INPUTS:&#10;CONSTRAINTS:&#10;OUTPUT:"></textarea>
+  <button class="btn" data-check>Check my rewrite</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "States a goal / outcome", "re": "goal|outcome|purpose|objective|produce|deliver"},
+    {"label": "States a role or whose standards apply", "re": "role|act as|you are|senior|analyst|sqa|reviewer|engineer|perspective|standards of"},
+    {"label": "States at least one hard rule (must / never / always)", "re": "must|never|always|do not|don't|required|mandatory|shall"},
+    {"label": "Names team-specific knowledge, not general knowledge", "re": "our |we |team|template|standard|convention|checklist|house|internal|company|client"},
+    {"label": "Names the input explicitly", "re": "input|attached|document|requirement|spec|ticket|brd|story|criteria|below|provided"},
+    {"label": "States a constraint (scope, length, tone, boundaries)", "re": "constraint|limit|scope|only|no more than|maximum|max |at most|exclude|out of scope|between|up to"},
+    {"label": "Specifies the output shape", "re": "output|format|table|column|markdown|structure|each case|fields|sections|per row|id, |heading"}
+  ]
+  </script>
+</div>
+
+<div class="callout insight">
+  <span class="label">The point of the exercise</span>
+  <p>Read your rewrite back and notice how much of it you would say <em>identically</em> next week,
+  for a different document. Highlight that part mentally. In Unit 5 you will learn that you just
+  wrote a Skill without being told what one was.</p>
+</div>
+
+<div class="source">
+  <span class="label">Primary source for this unit</span>
+  <p><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a> — Anthropic Engineering.</p>
+  <p>Read the whole thing this time, including the long-horizon techniques at the end (compaction,
+  structured note-taking, sub-agents, just-in-time retrieval). Those four reappear in Unit 7 and are
+  the most common questions a technical audience will ask you.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0003-context-hierarchy.html">Context hierarchy — printable card</a> ·
+  <a href="../reference/0002-glossary.html">Glossary</a> ·
+  <a href="0005-what-is-a-skill.html">Unit 5 — where this becomes a Skill</a>
+</p>
+
+<div class="ask">
+  <strong>Bring me your rewrite.</strong> The keyword check above only confirms the parts are present
+  — it cannot tell you whether the altitude is right. Paste it and I will tell you where it is too
+  brittle, too vague, or spending tokens on things the model already knows.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0002-how-agents-think.html">← Unit 2</a>
+  <span class="spacer"></span>
+  <a href="0004-tools-and-actions.html">Unit 4 — Tools, actions and capabilities →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
