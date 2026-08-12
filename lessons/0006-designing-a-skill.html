@@ -1,1 +1,337 @@
-<html><body><h1>Lesson 6: Designing a Skill</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 6 — Designing and Building a Skill</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 6 of 10</p>
+  <h1>Designing and Building a Skill</h1>
+  <p class="question">How do I create a good one — rather than a plausible-looking one?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 20 minutes + build</span>
+    <span><strong>You will be able to</strong> build, install and iterate on a real working Skill</span>
+    <span><strong>Prerequisites</strong> <a href="0005-what-is-a-skill.html">Unit 5</a></span>
+  </div>
+</header>
+
+<p class="lede">Unit 5 taught you to read a Skill. This unit is about producing one, and it opens with
+the piece of advice that most changes outcomes — and that almost everyone skips.</p>
+
+<h2>6.1 Build your evaluations first</h2>
+
+<div class="callout insight">
+  <span class="label">The instruction that reorders everything</span>
+  <p><em>"Create evaluations BEFORE writing extensive documentation. This ensures your Skill solves
+  real problems rather than documenting imagined ones."</em></p>
+</div>
+
+<p>The natural instinct is to write the Skill, then check whether it works. Invert it. The published
+sequence is:</p>
+
+<ol class="steps">
+  <li><strong>Identify gaps</strong><br>Run Claude on real tasks with <em>no</em> Skill. Write down
+  exactly what it got wrong or had to be told.</li>
+  <li><strong>Create evaluations</strong><br>Build three scenarios that test those specific gaps.</li>
+  <li><strong>Establish a baseline</strong><br>Record how it performs without the Skill. This is what
+  you will compare against — and what you will show your team in Unit 10.</li>
+  <li><strong>Write minimal instructions</strong><br>Just enough to close the gaps. Not a document —
+  the smallest thing that passes.</li>
+  <li><strong>Iterate</strong><br>Run the evals, compare to baseline, refine.</li>
+</ol>
+
+<p>Why this matters so much for your team: without a baseline, nobody can tell whether a Skill helped.
+Step 3 is the difference between "this feels better" and a demonstrable before/after.</p>
+
+<p class="sidenote">An evaluation here is not automated testing. There is no built-in runner — the
+docs say so explicitly. It is three saved inputs and a written statement of what a good response
+would contain. That is enough.</p>
+
+<h2>6.2 The design sequence</h2>
+
+<div class="flow">
+  <span class="node">Identify</span><span class="arr">→</span>
+  <span class="node">Define</span><span class="arr">→</span>
+  <span class="node">Contextualise</span><span class="arr">→</span>
+  <span class="node hi">Design</span><span class="arr">→</span>
+  <span class="node">Implement</span><span class="arr">→</span>
+  <span class="node">Test</span><span class="arr">→</span>
+  <span class="node">Evaluate</span><span class="arr">→</span>
+  <span class="node">Improve</span><span class="arr">↺</span>
+</div>
+
+<h3>Identify — pick the right task</h3>
+
+<p>Three conditions. A candidate that fails any of them will disappoint you.</p>
+
+<ul>
+  <li><strong>Repetitive.</strong> You do it often enough that the setup cost pays back.</li>
+  <li><strong>Knowledge-intensive.</strong> Doing it well requires something not in the model — your
+  standards, your domain, your client.</li>
+  <li><strong>Checkable.</strong> Somebody can tell whether the output is good. (Unit 2's ground
+  truth, returning.)</li>
+</ul>
+
+<h3>Define — goal, inputs, outputs</h3>
+
+<p>Write these three lines before anything else. If you cannot, the Skill is not scoped yet.</p>
+
+<pre><code>GOAL:    Derive test scenarios from acceptance criteria.
+INPUT:   A user story with acceptance criteria. Nothing else required.
+OUTPUT:  A table — ID, criterion, type, scenario, rationale.</code></pre>
+
+<p>Be strict about <strong>INPUT</strong>. "Whatever the user happens to have" is not an input
+specification, and it is the reason many Skills behave inconsistently.</p>
+
+<h3>Contextualise — what does it need to know that Claude does not?</h3>
+
+<p>Run the Unit 3 test on every candidate line: is this <em>knowledge</em> (already in the model,
+free) or <em>context</em> (yours, worth paying for)? Keep only the second kind.</p>
+
+<h3>Design — structure, rules, decisions, failure</h3>
+
+<p>Four questions, in this order:</p>
+
+<div class="card-grid">
+  <div class="card"><h5>Process</h5><p>What are the steps, numbered, in order? Use a checklist if there are more than four.</p></div>
+  <div class="card"><h5>Rules</h5><p>What must always or never happen? Say <em>must</em> and <em>never</em> — not "try to".</p></div>
+  <div class="card"><h5>Decisions</h5><p>Where does it branch? On what signal? What happens in each branch?</p></div>
+  <div class="card"><h5>Failure</h5><p>What should it do when it cannot proceed? Guess, or stop and ask?</p></div>
+</div>
+
+<div class="callout warning">
+  <span class="label">The most-skipped section, and the most valuable</span>
+  <p><strong>Failure handling.</strong> If you do not say what to do when information is missing, the
+  model will do the reasonable thing: proceed with a sensible assumption. That is exactly what you do
+  not want from a compliance review or a test plan.</p>
+  <p>Write it explicitly: <em>"If the acceptance criteria do not state a failure behaviour, flag it as
+  untestable. Never invent one."</em></p>
+</div>
+
+<h3>Implement — the patterns worth knowing</h3>
+
+<p><strong>Workflows with checklists.</strong> For anything with more than about four steps, give a
+checklist the agent copies into its response and ticks off. This measurably prevents step-skipping —
+particularly of validation steps, which are the ones it is most tempting to skip.</p>
+
+<pre><code>## Test design workflow
+
+Copy this checklist and track your progress:
+
+- [ ] Step 1: Extract every acceptance criterion separately
+- [ ] Step 2: Classify each by type
+- [ ] Step 3: Apply the coverage rule
+- [ ] Step 4: Flag untestable criteria
+- [ ] Step 5: Verify every criterion appears in the table
+</code></pre>
+
+<p><strong>Feedback loops.</strong> The pattern is <em>run a check → fix → repeat</em>, and it works
+without any code. The "validator" can simply be a reference document:</p>
+
+<pre><code>1. Draft the scenarios following the coverage rule.
+2. Review against the checklist in STANDARDS.md.
+3. If issues found: note each one, revise, review again.
+4. Only proceed when every item passes.
+</code></pre>
+
+<p>This is the highest-leverage pattern in the whole course for non-technical roles. It manufactures
+ground truth where there was none.</p>
+
+<p><strong>Progressive disclosure.</strong> Keep <code>SKILL.md</code> under 500 lines. When it grows,
+split — and keep every reference exactly <strong>one level deep</strong>:</p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>One level deep</h5>
+    <pre><code>SKILL.md
+ ├→ standards.md
+ ├→ examples.md
+ └→ reference/domain.md</code></pre>
+    <p style="margin-top:.5rem">Everything links directly from SKILL.md. Files get read completely.</p>
+  </div>
+  <div class="no">
+    <h5>Nested — avoid</h5>
+    <pre><code>SKILL.md
+ └→ advanced.md
+      └→ details.md
+           └→ the actual info</code></pre>
+    <p style="margin-top:.5rem">Claude may only preview nested files, giving incomplete information.</p>
+  </div>
+</div>
+
+<p>And for any reference file over 100 lines, put a table of contents at the top — so a partial read
+still reveals the full scope of what is available.</p>
+
+<h3>Where the file actually goes</h3>
+
+<div class="callout spec">
+  <span class="label">Claude Code</span>
+  <p>Filesystem-based, no upload needed. Personal: <code>~/.claude/skills/your-skill-name/SKILL.md</code>.
+  Project (shared through the repo): <code>.claude/skills/your-skill-name/SKILL.md</code>. Claude
+  discovers them automatically.</p>
+  <p><strong>claude.ai:</strong> upload a zip via Settings → Features. Per-user only — each colleague
+  uploads their own copy, and admins cannot distribute centrally. <strong>API:</strong> upload via the
+  Skills API; shared workspace-wide.</p>
+  <p>Skills do <em>not</em> sync between these surfaces. Pick one for your rollout. This matters for
+  Unit 10 — see the note there.</p>
+</div>
+
+<h2>6.3 Iterate with two Claudes</h2>
+
+<p>This is the working method the documentation recommends, and it is unintuitive enough to be worth
+naming explicitly.</p>
+
+<ul>
+  <li><strong>Claude A</strong> — your collaborator. Helps write and refine the Skill.</li>
+  <li><strong>Claude B</strong> — a fresh session with the Skill installed, doing real work.</li>
+</ul>
+
+<p>You watch B, and bring what you observe back to A. Not "make this Skill better" — but <em>"when
+Claude used this Skill, it forgot to filter by date for Q4. Should we add a section on date
+filtering?"</em> Concrete observed failures produce good revisions; abstract requests produce longer
+documents.</p>
+
+<div class="callout insight">
+  <span class="label">You do not need a special prompt for this</span>
+  <p>Claude understands the Skill format natively. Ask it to create a Skill and it will produce
+  correct frontmatter and structure. Your job is not to explain the format — it is to supply the
+  domain expertise and then <strong>cut</strong>. Expect to delete a third of what it writes with
+  "remove the explanation of what a test scenario is — Claude already knows that."</p>
+</div>
+
+<h3>What to watch for while observing</h3>
+
+<ul>
+  <li><strong>Unexpected paths</strong> — reads files in an order you did not expect? Your structure
+  is less intuitive than you thought.</li>
+  <li><strong>Missed connections</strong> — never follows a reference? The link needs to be more
+  prominent.</li>
+  <li><strong>Overreliance</strong> — reads the same bundled file every single time? It belongs in
+  <code>SKILL.md</code>.</li>
+  <li><strong>Ignored content</strong> — never opens a file at all? Delete it, or signal it better.</li>
+</ul>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>What should you do <em>before</em> writing the body of a new Skill?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Run the task without a Skill and record the failures. That gives you real gaps to close and a baseline to prove improvement against — the published evaluation-driven sequence.">Run the task unaided and record what fails.</button>
+      <button class="opt" data-fb="Reading examples is genuinely useful for calibration, but it does not tell you which gaps your Skill needs to close.">Read several published Skills for the structure.</button>
+      <button class="opt" data-fb="Naming is trivial to change later, and choosing it first tempts you to scope the Skill around a label rather than a gap.">Decide the name and file location up front.</button>
+      <button class="opt" data-fb="Listing everything the model might need is how bloated Skills get written. Start from observed failures instead.">List everything the model could need to know.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>Your <code>SKILL.md</code> has grown past 500 lines. What is the recommended move?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Split into separate files linked directly from SKILL.md — one level deep, never nested. That is progressive disclosure doing its job.">Split it into files linked one level deep.</button>
+      <button class="opt" data-fb="Nesting is explicitly warned against: Claude may only partially read files referenced from other referenced files, giving incomplete information.">Nest the details inside sub-referenced files.</button>
+      <button class="opt" data-fb="Compressing prose helps a little, but past 500 lines the structural answer is to split, not to squeeze.">Rewrite it more tersely until it fits again.</button>
+      <button class="opt" data-fb="Length limits apply to name and description, not the body. 500 lines is a performance guideline, not a hard cap.">Nothing, since only the frontmatter is limited.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>Your Skill omits any instruction about missing information. A criterion arrives with no stated failure behaviour. What happens?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="It proceeds with a reasonable assumption — quietly. That is sensible default behaviour and exactly the wrong outcome for review work. Write failure handling explicitly.">It assumes something sensible and carries on.</button>
+      <button class="opt" data-fb="Stopping to ask is the behaviour you must request. Left unspecified, the model resolves the gap itself.">It stops and asks you what it should do next.</button>
+      <button class="opt" data-fb="Silent skipping would at least be visible in the output. Assumption is more dangerous because it looks complete.">It silently skips the criterion from the output.</button>
+      <button class="opt" data-fb="Nothing errors. Missing domain information is not a malformed Skill — it is an ordinary input the model will handle its own way.">It returns an error about the malformed input.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">4</span>You notice Claude reads one bundled reference file on literally every run. What does that tell you?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Always-needed content is not really level 3. Move it into SKILL.md — you are paying an extra file read for something that was never optional.">That content belongs in SKILL.md itself.</button>
+      <button class="opt" data-fb="Consistent access is a signal about placement, not a sign of health. Progressive disclosure only pays off for genuinely optional content.">That progressive disclosure is working correctly.</button>
+      <button class="opt" data-fb="Nothing is being duplicated. It is being loaded reliably, which means it was never conditional in the first place.">That the file duplicates something in the body.</button>
+      <button class="opt" data-fb="Reference depth is a separate concern. This file is being found perfectly well — that is the point.">That the reference is nested too deeply below.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Build it: the authoring checklist</h2>
+
+<p>This is adapted from the official checklist. Tick as you go — your progress is saved in this
+browser.</p>
+
+<h4>Core quality</h4>
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>Description is specific and includes the words people actually type</label></li>
+  <li><input type="checkbox"><label>Description says both what it does <em>and</em> when to use it</label></li>
+  <li><input type="checkbox"><label>Description is written in third person</label></li>
+  <li><input type="checkbox"><label><code>name</code> is lowercase-with-hyphens, under 64 characters, gerund form</label></li>
+  <li><input type="checkbox"><label>Body is under 500 lines</label></li>
+  <li><input type="checkbox"><label>Nothing in it explains something Claude already knows</label></li>
+  <li><input type="checkbox"><label>Terminology is consistent — one word per concept throughout</label></li>
+  <li><input type="checkbox"><label>Examples are concrete, not abstract</label></li>
+  <li><input type="checkbox"><label>File references are one level deep from SKILL.md</label></li>
+  <li><input type="checkbox"><label>No time-sensitive information (or it is in an "Old patterns" section)</label></li>
+  <li><input type="checkbox"><label>Multi-step workflows have numbered steps, and a checklist if long</label></li>
+  <li><input type="checkbox"><label>Failure handling is stated explicitly</label></li>
+  <li><input type="checkbox"><label>Degrees of freedom match how fragile the task is</label></li>
+  <li><input type="checkbox"><label>Paths use forward slashes</label></li>
+</ul>
+
+<h4>Testing</h4>
+<ul class="checklist" data-checklist>
+  <li><input type="checkbox"><label>At least three evaluations written, with expected behaviour stated</label></li>
+  <li><input type="checkbox"><label>Baseline recorded — how the task went <em>without</em> the Skill</label></li>
+  <li><input type="checkbox"><label>Tested on real work, not invented test cases</label></li>
+  <li><input type="checkbox"><label>Tested on every model you intend to use it with</label></li>
+  <li><input type="checkbox"><label>A colleague has used it and given feedback</label></li>
+</ul>
+
+<div class="callout insight">
+  <span class="label">Now actually build it</span>
+  <p>Pick the strongest candidate from your Unit 4 map. Write it. Install it at
+  <code>~/.claude/skills/&lt;name&gt;/SKILL.md</code>. Run your three evaluations. This is the point of
+  the course — everything after here is about making it better and making it multiply.</p>
+</div>
+
+<div class="source">
+  <span class="label">Primary source for this unit</span>
+  <p><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">Skill authoring best practices</a> — read it fully now, especially "Evaluation and iteration".</p>
+  <p>Then: the <a href="https://platform.claude.com/cookbook/skills-notebooks-01-skills-introduction">Agent Skills Cookbook</a> for a complete worked build, and
+  <a href="https://code.claude.com/docs/en/skills">Use Skills in Claude Code</a> for the mechanics of
+  installing yours.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy</a> ·
+  <a href="../reference/0005-skill-design-canvas.html">Skill design canvas — print one per Skill</a> ·
+  <a href="0010-build-your-own.html">Unit 10 — the capstone</a>
+</p>
+
+<div class="ask">
+  <strong>Build it with me.</strong> Genuinely — this is what I am here for. Tell me the task, and we
+  will do the Claude A half together: I will draft, you will cut, and you take the result to a fresh
+  session to see how it actually behaves.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0005-what-is-a-skill.html">← Unit 5</a>
+  <span class="spacer"></span>
+  <a href="0007-skill-composition.html">Unit 7 — Skill composition and workflows →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
