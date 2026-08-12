@@ -1,1 +1,269 @@
-<html><body><h1>Lesson 9: Skills by Role</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 9 — Agent Skills by Profession</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 9 of 10</p>
+  <h1>Agent Skills by Profession</h1>
+  <p class="question">What does this actually look like in <em>my</em> job?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 15 minutes</span>
+    <span><strong>You will be able to</strong> pick your first Skill and specify it across seven dimensions</span>
+    <span><strong>Prerequisites</strong> <a href="0008-evaluation-and-hitl.html">Unit 8</a></span>
+  </div>
+</header>
+
+<div class="callout synthesis">
+  <span class="label">What kind of unit this is</span>
+  <p><strong>Synthesis.</strong> No primary source covers role-specific Skill patterns. Everything
+  below applies the documented authoring principles to your six role families. Treat the candidates
+  as well-reasoned starting points, not as received wisdom — and expect your own practitioners to
+  improve on them immediately. That is the intended outcome.</p>
+</div>
+
+<p class="lede">Twenty-one job titles, six families. Rather than twenty-one tracks, the useful move is
+to notice that every family has the same shape of first Skill — and that the highest-value candidate
+is almost never the most obvious one.</p>
+
+<h2>9.1 The pattern that repeats across all six</h2>
+
+<p>Before the lists, the generalisation worth teaching. In every profession, the best first Skill is
+the one that <strong>applies your standards to somebody else's work product</strong> — not the one
+that generates from scratch.</p>
+
+<div class="compare">
+  <div class="no">
+    <h5>Tempting first Skill: generate</h5>
+    <p>"Write the test cases." "Draft the proposal." "Create the personas."</p>
+    <p>Hard to evaluate, high stakes, and the model was already decent at it. Improvement is difficult
+    to demonstrate.</p>
+  </div>
+  <div class="yes">
+    <h5>Better first Skill: apply standards</h5>
+    <p>"Check these test cases against our coverage rules." "Review this proposal against our
+    qualification criteria."</p>
+    <p>Checkable, low risk, and encodes knowledge only your team has. Ground truth is available.</p>
+  </div>
+</div>
+
+<p>This maps directly to Unit 8: review work has natural evaluation criteria. Generation work does
+not. Start where you can tell whether it worked.</p>
+
+<h2>9.2 The six families</h2>
+
+<h3>A · Business Analysis</h3>
+<p><em>Associate BA, BA I, BA II, Senior BA</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Gap detection</div><div class="what"><code>analyzing-requirement-gaps</code> — checks a requirement for missing actor, trigger, outcome, failure behaviour and compliance implications. Highest value because your ambiguity checklist is pure team knowledge.</div></div>
+  <div class="role-row"><div class="who">Classification</div><div class="what"><code>classifying-requirements</code> — functional, non-functional, business rule, constraint. Trivial to evaluate; good confidence-builder for a nervous team.</div></div>
+  <div class="role-row"><div class="who">Story writing</div><div class="what"><code>writing-user-stories</code> — your template, your INVEST standards, your definition of ready.</div></div>
+  <div class="role-row"><div class="who">Criteria</div><div class="what"><code>writing-acceptance-criteria</code> — the format you actually use, with the rule that every criterion must be observable.</div></div>
+  <div class="role-row"><div class="who">Rule extraction</div><div class="what"><code>extracting-business-rules</code> — pulls rules buried in prose into a table. Genuinely tedious by hand.</div></div>
+  <div class="role-row"><div class="who">Traceability</div><div class="what"><code>checking-requirement-traceability</code> — every requirement reaches a story; every story traces back. Purely deterministic, so it is reliable.</div></div>
+</div>
+
+<h3>B · Software Engineering</h3>
+<p><em>Software Engineer I, Bridge System Engineer, Lead UI Engineer</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Code review</div><div class="what"><code>reviewing-code-changes</code> — <em>your</em> standards, not generic ones. The value is entirely in the conventions your team argues about in PRs.</div></div>
+  <div class="role-row"><div class="who">Understanding</div><div class="what"><code>explaining-unfamiliar-code</code> — with your architecture's vocabulary attached, so explanations use your module names.</div></div>
+  <div class="role-row"><div class="who">API analysis</div><div class="what"><code>analyzing-api-contracts</code> — breaking-change detection against your versioning policy.</div></div>
+  <div class="role-row"><div class="who">Documentation</div><div class="what"><code>writing-technical-docs</code> — your structure, your audience assumptions.</div></div>
+  <div class="role-row"><div class="who">Debugging</div><div class="what"><code>diagnosing-defects</code> — your logging conventions and the three systems that always turn out to be responsible.</div></div>
+</div>
+
+<h3>C · Software Quality Assurance</h3>
+<p><em>Associate SQA, SQA I/II, Senior SQA I/II, Principal SQA</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Test review</div><div class="what"><code>reviewing-test-coverage</code> — checks existing cases against criteria and your coverage rules. Deterministic core, immediate value, zero risk.</div></div>
+  <div class="role-row"><div class="who">Scenarios</div><div class="what"><code>generating-test-scenarios</code> — the worked example from Unit 5.</div></div>
+  <div class="role-row"><div class="who">Traceability</div><div class="what"><code>tracing-requirements-to-tests</code> — the matrix nobody enjoys maintaining.</div></div>
+  <div class="role-row"><div class="who">Defect analysis</div><div class="what"><code>analyzing-defect-reports</code> — completeness, reproducibility, correct severity by your rubric.</div></div>
+  <div class="role-row"><div class="who">Regression</div><div class="what"><code>selecting-regression-scope</code> — encodes what historically breaks when a given area changes. Deep team knowledge; nobody else has it.</div></div>
+  <div class="role-row"><div class="who">Test data</div><div class="what"><code>designing-test-data</code> — boundary and edge values fitting your domain constraints.</div></div>
+</div>
+
+<h3>D · UX and 3D Design</h3>
+<p><em>UX Designer II, Senior UX Designer, 3D Designer I/II</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Heuristic review</div><div class="what"><code>running-heuristic-review</code> — your rubric, your product's constraints, evidence required for every finding.</div></div>
+  <div class="role-row"><div class="who">Research synthesis</div><div class="what"><code>synthesizing-research-notes</code> — themes across sessions, with the rule that every theme cites at least two participants.</div></div>
+  <div class="role-row"><div class="who">Journeys</div><div class="what"><code>analyzing-user-journeys</code> — friction points against your service model.</div></div>
+  <div class="role-row"><div class="who">Requirements</div><div class="what"><code>extracting-design-requirements</code> — turning a BRD into design constraints. Bridges you to the BA family.</div></div>
+  <div class="role-row"><div class="who">Design docs</div><div class="what"><code>documenting-design-decisions</code> — the rationale record that never gets written otherwise.</div></div>
+  <div class="role-row"><div class="who">3D specifics</div><div class="what"><code>reviewing-asset-specifications</code> — poly budgets, texture standards, naming conventions, delivery format. Highly checkable.</div></div>
+</div>
+
+<div class="callout insight">
+  <span class="label">A note for the designers in the room</span>
+  <p>The 3D and UX roles are where people most often assume "this is not for me." The opposite is
+  true: design teams carry an unusual amount of undocumented standards, and undocumented standards are
+  exactly what Skills capture. The asset-specification review above is one of the most
+  deterministically checkable Skills on this entire page.</p>
+</div>
+
+<h3>E · Project and Delivery</h3>
+<p><em>Project Manager I, Senior Project Manager</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Meeting analysis</div><div class="what"><code>extracting-action-items</code> — decisions, owners, dates, and explicitly flagging every item with no owner. Enormous time saving, trivially verifiable.</div></div>
+  <div class="role-row"><div class="who">Status</div><div class="what"><code>drafting-status-reports</code> — your format, plus the rule that every claim names its source.</div></div>
+  <div class="role-row"><div class="who">Risk</div><div class="what"><code>identifying-project-risks</code> — against your risk taxonomy and what has actually gone wrong before.</div></div>
+  <div class="role-row"><div class="who">Dependencies</div><div class="what"><code>analyzing-dependencies</code> — cross-team blockers surfaced from plans.</div></div>
+  <div class="role-row"><div class="who">Health</div><div class="what"><code>assessing-project-health</code> — your RAG criteria, applied consistently rather than by mood.</div></div>
+</div>
+
+<h3>F · Business Development</h3>
+<p><em>Executive BD, Senior Executive BD</em></p>
+
+<div class="role-strip">
+  <div class="role-head">Candidates — ★ = start here</div>
+  <div class="role-row"><div class="who">★ Qualification</div><div class="what"><code>qualifying-rfps</code> — bid / no-bid against your capability list and commercial thresholds. Saves the most expensive mistake in BD: pursuing work you cannot win.</div></div>
+  <div class="role-row"><div class="who">RFP analysis</div><div class="what"><code>analyzing-rfp-requirements</code> — pulls every mandatory requirement into a compliance matrix.</div></div>
+  <div class="role-row"><div class="who">Meeting prep</div><div class="what"><code>preparing-client-meetings</code> — account history, open items, and the questions you always forget to ask.</div></div>
+  <div class="role-row"><div class="who">Solution mapping</div><div class="what"><code>mapping-solutions-to-needs</code> — client need to your actual delivered capability, with the rule that nothing unproven may be claimed.</div></div>
+  <div class="role-row"><div class="who">Competitors</div><div class="what"><code>analyzing-competitive-position</code> — against your known differentiators.</div></div>
+</div>
+
+<h2>9.3 A worked example, deliberately not from engineering</h2>
+
+<p>To make the point that this is not a developer tool:</p>
+
+<span class="filename">qualifying-rfps/SKILL.md</span>
+<pre class="frontmatter"><code>---
+name: qualifying-rfps
+description: Assesses an incoming RFP, tender or proposal request against the
+  firm's capability list and commercial thresholds, and returns a bid / no-bid
+  recommendation with the reasoning. Use when a new RFP, tender, ITT or client
+  proposal request arrives and someone needs to decide whether to pursue it.
+---
+
+# Qualifying RFPs
+
+You are applying the qualification standards of a Senior BD Executive.
+Be decisive. A soft "maybe" is the least useful output.
+
+## Process
+1. Extract every mandatory requirement into a list.
+2. Mark each: CAN DELIVER / PARTIAL / CANNOT — using capabilities.md only.
+3. Extract commercial terms: value, timeline, payment, penalties.
+4. Apply the thresholds below.
+5. Give a recommendation with the three strongest reasons.
+
+## Thresholds
+- Any CANNOT on a mandatory requirement → recommend NO BID.
+- More than two PARTIALs → recommend NO BID unless the value
+  exceeds the standard threshold.
+- Timeline under six weeks from award → flag as high risk.
+
+## Rules
+- MUST NOT claim a capability that is not listed in capabilities.md.
+- MUST list every requirement you could not classify. Never guess.
+- If commercial terms are absent, say so — do not assume standard terms.
+
+## Output
+1. Recommendation: BID / NO BID / BID WITH CONDITIONS
+2. Three reasons, most decisive first
+3. Compliance table: Requirement | Status | Evidence
+4. Unclassified requirements needing a human
+</code></pre>
+
+<p>Note what makes this work: <code>capabilities.md</code> sits alongside as a bundled file (level 3),
+so the capability list can be updated without touching the Skill. The <em>"MUST NOT claim a capability
+not listed"</em> rule is the failure handling from Unit 6, doing the job that matters most.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>Why is "review this against our standards" usually a better first Skill than "generate this from scratch"?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Review work carries its own evaluation criteria — the standards themselves. That gives you ground truth, low risk, and a demonstrable before/after. Generation has none of those.">Review work comes with criteria you can check.</button>
+      <button class="opt" data-fb="Review is not inherently easier for the model. It is easier for <em>you</em> to verify, which is the actual advantage.">Reviewing is a much easier task for the model.</button>
+      <button class="opt" data-fb="Generation is entirely legitimate. It is simply a harder place to start, because success is difficult to measure.">Generating content is not a valid use for Skills.</button>
+      <button class="opt" data-fb="Length has nothing to do with it. Some review Skills are long; some generation Skills are short.">Review Skills are considerably shorter to write.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>In the RFP Skill, why is the capability list a separate bundled file rather than part of <code>SKILL.md</code>?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="It changes on a different schedule from the method, and it can grow without inflating the body. Level 3 content costs nothing until read — the whole point of progressive disclosure.">It changes independently and costs nothing unread.</button>
+      <button class="opt" data-fb="There is no rule requiring lists to be external. It is a design judgement about change frequency and size.">The format requires lists to be stored separately.</button>
+      <button class="opt" data-fb="Both live in the same directory with the same access. Separation is about maintenance and context, not secrecy.">It keeps commercially sensitive detail more private.</button>
+      <button class="opt" data-fb="Splitting does not make anything load faster. It makes it load only when actually needed.">It makes the Skill load noticeably faster overall.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Activity: specify your Skill across seven dimensions</h2>
+
+<p>This is the activity from your outline, and it is the direct input to Unit 10. Pick one Skill from
+your family — ideally the starred one — and fill in all seven.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="SKILL: reviewing-test-coverage&#10;&#10;GOAL:       Confirm every acceptance criterion has adequate test coverage&#10;INPUT:      A user story with criteria, plus its existing test cases&#10;CONTEXT:    Our coverage rules; the three areas that historically regress&#10;PROCESS:    1. List criteria  2. Map cases to criteria  3. Apply rules  4. Report gaps&#10;TOOLS:      Read the test management system (READ only)&#10;OUTPUT:     Table — Criterion | Covered by | Verdict | Gap&#10;EVALUATION: Every criterion ID appears exactly once; no gap left unexplained"></textarea>
+  <button class="btn" data-check>Check my specification</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Goal stated", "re": "goal"},
+    {"label": "Input stated", "re": "input"},
+    {"label": "Context — names something only your team knows", "re": "our |we |team|internal|historic|client|house|company|standard|convention|rubric|threshold|taxonomy"},
+    {"label": "Process has numbered steps", "re": "process[\\s\\S]*(1\\.|1\\))"},
+    {"label": "Tools named, with read/write marked", "re": "(read|write)[\\s\\S]*(only|write|read)|read.only|write.access"},
+    {"label": "Output shape specified", "re": "output[\\s\\S]*(table|\\||format|column|list|section|row|json|markdown)"},
+    {"label": "Evaluation is checkable, not vague", "re": "every|each|exactly|at least|no |all |count|appears|matches|traceab|100|none"}
+  ]
+  </script>
+</div>
+
+<div class="source">
+  <span class="label">Read before Unit 10</span>
+  <p><a href="https://github.com/anthropics/skills">github.com/anthropics/skills</a> — pick three Skills and read them end to end.</p>
+  <p>Do this before you write your capstone. Reading real Skills recalibrates you faster than any
+  amount of instruction — most people discover theirs is twice as long as it needed to be.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0005-skill-design-canvas.html">Skill design canvas — print one per person</a> ·
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy</a> ·
+  <a href="0010-build-your-own.html">Unit 10 — the capstone</a>
+</p>
+
+<div class="ask">
+  <strong>Your role not represented well enough here?</strong> Tell me the job and the week, and we
+  will find the highest-value candidate together. The lists above are starting points I reasoned out —
+  your practitioners will know better, and I would rather work from their answer than mine.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0008-evaluation-and-hitl.html">← Unit 8</a>
+  <span class="spacer"></span>
+  <a href="0010-build-your-own.html">Unit 10 — Build your own Agent Skill →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
