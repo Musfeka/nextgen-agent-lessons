@@ -1,1 +1,268 @@
-<html><body><h1>Lesson 5: What is a Skill</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 — Tools, Actions and Capabilities</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 4 of 10</p>
+  <h1>Tools, Actions and Capabilities</h1>
+  <p class="question">How does an agent actually <em>do</em> things — and what stops it doing the wrong ones?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 13 minutes</span>
+    <span><strong>You will be able to</strong> map the tools a task needs and classify each one's risk</span>
+    <span><strong>Prerequisites</strong> <a href="0003-context-engineering.html">Unit 3</a></span>
+  </div>
+</header>
+
+<p class="lede">An agent that can only generate text is a very good writer. An agent that can act is a
+colleague — and a liability. This unit is the shortest path to using the second kind safely.</p>
+
+<h2>4.1 What a tool is</h2>
+
+<p>A <span class="term">tool</span> is a defined capability the agent can invoke to reach beyond the
+conversation: read a file, query a database, search the web, run a script, send a message, open a
+ticket.</p>
+
+<p>Two things about tools surprise people:</p>
+
+<ul>
+  <li><strong>The agent chooses.</strong> You do not call the tool. You make it available and describe
+  it; the model decides whether, when, and with what arguments.</li>
+  <li><strong>The description is the interface.</strong> A tool the model does not understand is a
+  tool it will use wrongly or ignore. Tool documentation is not documentation — it is programming.</li>
+</ul>
+
+<blockquote>
+  <p>Effective tools are self-contained, robust to error, and extremely clear with respect to their
+  intended use.</p>
+  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a></cite>
+</blockquote>
+
+<h2>4.2 Tool versus Skill — the distinction that keeps mattering</h2>
+
+<p>You met this in Unit 1. Here it is sharpened, because this is where people design badly.</p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Skill = method</h5>
+    <p><em>How we analyse a software requirement.</em></p>
+    <p>Knowledge, standards, sequence, judgement. Portable. Survives a change of systems.</p>
+  </div>
+  <div class="yes">
+    <h5>Tool = reach</h5>
+    <p><em>Read Jira. Read GitHub. Query the database.</em></p>
+    <p>Access to a system. Says nothing about what good work looks like.</p>
+  </div>
+</div>
+
+<p>Neither is sufficient. A Skill with no tools can reason about material you paste in, but cannot go
+and get it. Tools with no Skill can fetch everything and still produce work that fails your review.</p>
+
+<div class="callout insight">
+  <span class="label">A test you can apply in seconds</span>
+  <p>If your company switched from Jira to Azure DevOps tomorrow — would this thing need rewriting?
+  If <strong>yes</strong>, it is a tool concern. If <strong>no</strong>, it is a Skill concern. Keep
+  them in separate boxes and both stay maintainable.</p>
+</div>
+
+<h2>4.3 How the agent chooses a tool</h2>
+
+<p>Three decisions, every time: <em>which</em> tool, <em>when</em>, and <em>with what arguments</em>.
+The model makes them by reading the available tool descriptions and matching them against its current
+goal — exactly the way it matches a Skill's <code>description</code>.</p>
+
+<p>Which means the failure mode is identical, too:</p>
+
+<div class="callout warning">
+  <span class="label">Bloated tool sets</span>
+  <p>Anthropic is blunt about this: a common failure is <em>"bloated tool sets that cover too much
+  functionality or lead to ambiguous decision points about which tool to use."</em></p>
+  <p>And the diagnostic test: <strong>if your engineers cannot definitively say which tool is correct
+  for a situation, neither can the agent.</strong> Ambiguity you can live with is ambiguity the model
+  cannot.</p>
+</div>
+
+<p class="sidenote">This is the strongest argument against "connect everything and see what happens."
+Twelve overlapping integrations do not make an agent twelve times more capable. They make its tool
+choice unreliable.</p>
+
+<h2>4.4 Tool chains</h2>
+
+<p>Real work is a sequence. Here is the SQA example from your outline, with the important part marked:</p>
+
+<div class="flow">
+  <span class="node">Read requirement</span><span class="arr">→</span>
+  <span class="node">Search existing tests</span><span class="arr">→</span>
+  <span class="node hi">Analyse gap</span><span class="arr">→</span>
+  <span class="node">Create test cases</span>
+</div>
+
+<p>Three of those four steps are tool calls. The highlighted one is not — it is judgement, and no
+integration will supply it. <strong>That step is where your Skill lives.</strong></p>
+
+<p>Generalise this and you have a design habit worth teaching your whole team: <em>draw the chain,
+then circle the steps that are not tool calls.</em> Those circles are your Skill backlog.</p>
+
+<h2>4.5 Tool safety</h2>
+
+<p>The moment an agent can act, four questions stop being theoretical.</p>
+
+<div class="table-scroll">
+<table>
+  <caption>Classify every tool before you enable it</caption>
+  <thead><tr><th>Question</th><th>What you are deciding</th><th>Get it wrong and…</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Permission</strong></td><td>What may it touch at all?</td><td>It reaches data it should never have seen.</td></tr>
+    <tr><td><strong>Read or write</strong></td><td>Can it change anything?</td><td>A wrong answer becomes a wrong record.</td></tr>
+    <tr><td><strong>Validation</strong></td><td>Is the action checked before it lands?</td><td>Errors are found by customers, not by you.</td></tr>
+    <tr><td><strong>Approval</strong></td><td>Does a human confirm first?</td><td>Nobody notices until it is 200 rows deep.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>The read/write line is the one to teach hardest</h3>
+
+<p>It is the cheapest safety control you have, and it is comprehensible to non-technical staff.</p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Read — start here always</h5>
+    <p>Search the repo, read the ticket, query the report, fetch the document.</p>
+    <p>Worst case: a wasted run and a wrong answer you can discard.</p>
+  </div>
+  <div class="no">
+    <h5>Write — earn this</h5>
+    <p>Update the ticket, send the email, commit the change, post to the client.</p>
+    <p>Worst case: something outside your control, already seen by someone else.</p>
+  </div>
+</div>
+
+<p>A sane rollout for a team new to this: <strong>read-only for everyone, writes behind explicit
+approval, destructive actions not enabled at all until someone owns them.</strong></p>
+
+<h3>And a specific warning about Skills themselves</h3>
+
+<div class="callout warning">
+  <span class="label">Skills are executable trust</span>
+  <p>The documentation is explicit: <em>"Use Skills only from trusted sources."</em> A Skill can
+  direct an agent to invoke tools in ways that do not match its stated purpose. Treat installing a
+  third-party Skill exactly like installing software from the internet — read every file first,
+  including bundled scripts.</p>
+  <p>Skills that fetch content from external URLs deserve particular suspicion: fetched content can
+  itself carry instructions.</p>
+</div>
+
+<div class="role-strip">
+  <div class="role-head">Tool chains in six jobs — the circled step is the Skill</div>
+  <div class="role-row"><div class="who">BA</div><div class="what">Read BRD → search related epics → <em>judge completeness</em> → draft clarifying questions.</div></div>
+  <div class="role-row"><div class="who">SQA</div><div class="what">Read story → search test repo → <em>identify coverage gap</em> → write cases.</div></div>
+  <div class="role-row"><div class="who">UX</div><div class="what">Read research notes → pull prior personas → <em>apply heuristic rubric</em> → write critique.</div></div>
+  <div class="role-row"><div class="who">Dev</div><div class="what">Read diff → fetch interface definition → <em>apply review standards</em> → comment.</div></div>
+  <div class="role-row"><div class="who">PM</div><div class="what">Read board → pull last week's report → <em>assess health and risk</em> → draft update.</div></div>
+  <div class="role-row"><div class="who">BD</div><div class="what">Read RFP → search past proposals → <em>qualify against capability</em> → recommend bid/no-bid.</div></div>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>Your team connects twelve overlapping integrations, several of which could plausibly answer the same question. What is the likely result?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Ambiguous decision points. If a human engineer cannot say definitively which tool is right, the agent cannot either — that is Anthropic's own stated test.">Tool choice becomes unreliable and inconsistent.</button>
+      <button class="opt" data-fb="Capability does not add up that way. Overlap creates ambiguity, and ambiguity degrades selection rather than improving reach.">Capability rises roughly in line with the count.</button>
+      <button class="opt" data-fb="Speed is not the primary concern here. Correct tool selection is, and it gets worse rather than slower.">Nothing changes except how quickly it responds.</button>
+      <button class="opt" data-fb="The model will not refuse. It will pick one, confidently, and possibly a different one next time.">The agent refuses to act until you remove some.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>You are asked whether "our standard for writing acceptance criteria" is a tool concern or a Skill concern. What settles it?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="The migration test. Switching from Jira to Azure DevOps would not change your standard for acceptance criteria — so it is a Skill. Anything that would need rewriting is a tool concern.">Whether switching systems would require a rewrite.</button>
+      <button class="opt" data-fb="Complexity does not decide category. Simple standards are still Skills; elaborate integrations are still tools.">Whether the thing is complicated enough to matter.</button>
+      <button class="opt" data-fb="Frequency is useful for prioritising what to build, but it does not tell you which of the two categories something is.">Whether the task comes up frequently enough here.</button>
+      <button class="opt" data-fb="Who wrote it has no bearing. A developer can author a Skill; a BA can specify a tool.">Whether a developer or an analyst produced it.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>A colleague downloads a Skill from a public repository and wants to install it. The correct response is…</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Read everything first — SKILL.md and every bundled script. A Skill can direct the agent to use tools in ways unrelated to its stated purpose. The docs say to treat this exactly like installing software.">Read every bundled file before it is installed.</button>
+      <button class="opt" data-fb="Popularity is not an audit. A widely-downloaded Skill with a malicious script is still a malicious script.">Check its download count, then install it happily.</button>
+      <button class="opt" data-fb="Markdown is not automatically safe — instructions direct an agent that holds real permissions, and Skills can bundle scripts too.">Install it freely, since Markdown cannot do harm.</button>
+      <button class="opt" data-fb="A blanket ban is unnecessary and wasteful. Anthropic publishes open-source Skills worth reading and reusing — audited, not avoided.">Forbid all external Skills as a standing policy.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Activity: map your tools, classify your risk</h2>
+
+<p>Take one task from your Unit 1 list. Write the chain — each step, the tool it needs, and whether
+that tool <strong>reads</strong> or <strong>writes</strong>. Then circle the steps that are not tool
+calls at all.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="Step 1: Fetch the requirement — tool: Confluence — READ&#10;Step 2: Search existing test cases — tool: TestRail — READ&#10;Step 3: Identify the coverage gap — NO TOOL, this is judgement (Skill)&#10;Step 4: Create the new cases — tool: TestRail — WRITE, needs approval"></textarea>
+  <button class="btn" data-check>Check the shape of my map</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "At least three steps", "re": "(^|\\n)[^\\n]*3\\s*[\\).:-]|step\\s*3"},
+    {"label": "Names actual systems, not generic 'the tool'", "re": "jira|confluence|github|gitlab|testrail|azure|slack|figma|sharepoint|drive|notion|salesforce|hubspot|zephyr|xray|excel|sheets|crm|database|email|outlook"},
+    {"label": "Marks at least one step as READ", "re": "read|fetch|search|query|retriev|view|get "},
+    {"label": "Marks at least one step as WRITE", "re": "write|creat|updat|post|send|commit|save|upload|insert|modif"},
+    {"label": "Identifies at least one judgement step with no tool", "re": "no tool|judg|skill|reason|decide|analys|analyz|assess|not a tool|human"},
+    {"label": "Flags where approval is needed", "re": "approv|review|confirm|sign.?off|check with|human|gate"}
+  ]
+  </script>
+</div>
+
+<div class="callout insight">
+  <span class="label">What you just produced</span>
+  <p>Two deliverables, not one. The tool column is a request to whoever administers your AI setup.
+  The circled judgement steps are your personal Skill backlog — and one of them will become your
+  Unit 10 capstone.</p>
+</div>
+
+<div class="source">
+  <span class="label">Primary source for this unit</span>
+  <p><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing effective tools for AI agents — using AI agents</a> — Anthropic Engineering.</p>
+  <p>Written for people building tools, but read it as a user: it explains why some integrations feel
+  reliable and others feel erratic. The section on consolidating overlapping tools is the one to bring
+  to your platform team.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0004-failure-modes.html">Agent failure modes</a> ·
+  <a href="../reference/0002-glossary.html">Glossary</a> ·
+  <a href="0008-evaluation-and-hitl.html">Unit 8 — where approval gates get designed</a>
+</p>
+
+<div class="ask">
+  <strong>Not sure where a step belongs?</strong> The tool/Skill line is genuinely subtle in real
+  work. Paste your chain and I will tell you which steps you have mislabelled — most people mark
+  judgement steps as tool steps at least once.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0003-context-engineering.html">← Unit 3</a>
+  <span class="spacer"></span>
+  <a href="0005-what-is-a-skill.html">Unit 5 — What exactly is a Skill? →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
