@@ -6,46 +6,1021 @@
 <title>Unit 12 — Agent Memory & Persistence</title>
 <link rel="stylesheet" href="../assets/course.css">
 </head>
+
 <body>
 <main class="page">
 
 <header class="masthead">
-  <p class="eyebrow">Agent Skills · Unit 12 of 12</p>
+  <p class="eyebrow">Agent Skills · Unit 12 · Memory & Persistence</p>
+
   <h1>Agent Memory & Persistence</h1>
-  <p class="question">How do agents remember context across conversations and execution loops?</p>
+
+  <p class="question">
+    How does an agent remember useful information across steps,
+    sessions, and future tasks without filling its context with everything?
+  </p>
+
   <div class="meta">
-    <span><strong>Time</strong> 15 minutes</span>
-    <span><strong>You will learn</strong> Short-term vs. Long-term memory and Vector DB integration</span>
+    <span><strong>Time</strong> 25 minutes</span>
+
+    <span>
+      <strong>You will be able to</strong>
+      design a memory system that retrieves useful information,
+      saves the right information, and avoids stale or noisy memory
+    </span>
+
+    <span>
+      <strong>Prerequisites</strong>
+      <a href="0011-advanced-orchestration.html">Unit 11</a>
+    </span>
   </div>
 </header>
 
-<p class="lede">Without memory, an agent starts every conversation as a blank slate. Memory allows agents to maintain long-term context, learn from past mistakes, and track multi-step goals over time.</p>
 
-<h2>12.1 Types of Agent Memory</h2>
+<div class="callout synthesis">
+  <span class="label">Read this first — memory is not the same as context</span>
+
+  <p>
+    An agent's <strong>context</strong> is the information currently available
+    inside its working window.
+  </p>
+
+  <p>
+    <strong>Memory</strong> is information stored so that it can be retrieved
+    later when it becomes useful again.
+  </p>
+
+  <p>
+    A good memory system does not remember everything.
+    It remembers the <strong>right information</strong>,
+    retrieves it at the <strong>right time</strong>,
+    and keeps irrelevant history out of the agent's active context.
+  </p>
+</div>
+
+
+<h2>12.1 Context, Memory, and Knowledge are different</h2>
+
+<p>
+These three ideas are related, but they solve different problems.
+Confusing them creates bloated and unreliable agents.
+</p>
+
+<div class="table-scroll">
+<table>
+
+  <caption>Context vs. Memory vs. Knowledge</caption>
+
+  <thead>
+    <tr>
+      <th>Concept</th>
+      <th>What it means</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Context</strong></td>
+      <td>
+        Information currently available to the model while it is reasoning.
+      </td>
+      <td>
+        The current conversation, tool results, instructions,
+        and files opened during this task.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Memory</strong></td>
+      <td>
+        Information saved from previous interactions or execution
+        so it can be used later.
+      </td>
+      <td>
+        "This project uses PostgreSQL."
+        "The user prefers CSV output."
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Knowledge</strong></td>
+      <td>
+        External information the agent can search or retrieve when needed.
+      </td>
+      <td>
+        Product documentation, company policies,
+        research papers, manuals, or a knowledge base.
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+
+
+<div class="callout insight">
+  <span class="label">A simple way to remember the difference</span>
+
+  <p>
+    <strong>Context</strong> = what is on the desk right now.
+  </p>
+
+  <p>
+    <strong>Memory</strong> = notes saved from previous work.
+  </p>
+
+  <p>
+    <strong>Knowledge</strong> = the library you can search when you need more information.
+  </p>
+</div>
+
+
+<h2>12.2 Four useful layers of agent memory</h2>
 
 <div class="card-grid">
+
   <div class="card">
-    <span class="num">Type 1</span>
-    <h5>Short-Term Memory</h5>
-    <p>In-context memory maintained within the immediate window (e.g., chat history in the current session).</p>
+    <span class="num">Layer 1</span>
+    <h5>Working Memory</h5>
+    <p>
+      Information needed for the immediate reasoning step:
+      recent messages, tool outputs, temporary calculations,
+      and the current plan.
+    </p>
   </div>
+
   <div class="card">
-    <span class="num">Type 2</span>
+    <span class="num">Layer 2</span>
+    <h5>Task State</h5>
+    <p>
+      Progress that must survive across multiple execution steps:
+      completed subtasks, current status, pending actions,
+      checkpoints, and intermediate results.
+    </p>
+  </div>
+
+  <div class="card">
+    <span class="num">Layer 3</span>
     <h5>Long-Term Memory</h5>
-    <p>Persistent storage backed by Vector Databases or Key-Value stores (e.g., ChromaDB, Mem0) to retrieve past insights.</p>
+    <p>
+      Durable information worth remembering beyond the current task:
+      preferences, project conventions, recurring facts,
+      successful decisions, and reusable lessons.
+    </p>
   </div>
+
+  <div class="card">
+    <span class="num">Layer 4</span>
+    <h5>External Knowledge</h5>
+    <p>
+      Documents and reference material that are searched when needed
+      rather than permanently placed inside the active context.
+    </p>
+  </div>
+
 </div>
 
-<h2>12.2 The Memory Retrieval Loop</h2>
+
+<h2>12.3 Short-term memory vs. long-term memory</h2>
+
+<div class="table-scroll">
+<table>
+
+  <caption>Two different jobs</caption>
+
+  <thead>
+    <tr>
+      <th>Dimension</th>
+      <th>Short-Term / Working Memory</th>
+      <th>Long-Term Memory</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Lifetime</strong></td>
+      <td>Current task or session</td>
+      <td>Future sessions or future tasks</td>
+    </tr>
+
+    <tr>
+      <td><strong>Purpose</strong></td>
+      <td>Keep the current task coherent</td>
+      <td>Reuse valuable information later</td>
+    </tr>
+
+    <tr>
+      <td><strong>Typical content</strong></td>
+      <td>
+        Current goal, recent messages, temporary results,
+        open subtasks
+      </td>
+      <td>
+        Stable preferences, project rules,
+        reusable decisions, recurring facts
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Main risk</strong></td>
+      <td>Context bloat</td>
+      <td>Stale or incorrect memory</td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>12.4 Memory is more than a Vector Database</h2>
+
+<p>
+A Vector Database is useful when an agent needs semantic similarity search,
+but it is only one possible memory storage mechanism.
+</p>
+
+<div class="role-strip">
+
+  <div class="role-head">Choose storage based on the type of information</div>
+
+  <div class="role-row">
+    <div class="who">Key-Value Store</div>
+    <div class="what">
+      Best for direct facts such as
+      <em>preferred_language = English</em>
+      or <em>default_currency = BDT</em>.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Relational Database</div>
+    <div class="what">
+      Best for structured records, relationships,
+      timestamps, permissions, statuses, and audit history.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Vector Store</div>
+    <div class="what">
+      Best when information needs to be found by semantic similarity
+      rather than an exact identifier.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Event Log</div>
+    <div class="what">
+      Best for recording what happened over time:
+      actions, decisions, tool calls, failures, and checkpoints.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Files / Documents</div>
+    <div class="what">
+      Best for durable project instructions,
+      specifications, reports, and human-readable reference material.
+    </div>
+  </div>
+
+</div>
+
+
+<div class="callout warning">
+  <span class="label">Do not start with "Which Vector DB should I use?"</span>
+
+  <p>
+    Start with a better question:
+    <strong>"What information must the agent remember, for how long,
+    and how will it retrieve it?"</strong>
+  </p>
+
+  <p>
+    Storage technology comes after the memory policy.
+  </p>
+</div>
+
+
+<h2>12.5 The complete memory lifecycle</h2>
+
+<p>
+A useful agent memory system needs both a
+<strong>read policy</strong> and a <strong>write policy</strong>.
+</p>
 
 <div class="flow">
-  <span class="node">User Input</span><span class="arr">→</span>
-  <span class="node">Vector Search</span><span class="arr">→</span>
-  <span class="node">Inject Memory Context</span><span class="arr">→</span>
-  <span class="node hi">LLM Reason & Act</span><span class="arr">→</span>
-  <span class="node">Save Result</span><span class="arr">↺</span>
+
+  <span class="node">New Task</span>
+  <span class="arr">→</span>
+
+  <span class="node">Retrieve Candidate Memory</span>
+  <span class="arr">→</span>
+
+  <span class="node">Filter for Relevance</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">Reason & Act</span>
+  <span class="arr">→</span>
+
+  <span class="node">Decide What Is Worth Saving</span>
+  <span class="arr">→</span>
+
+  <span class="node">Persist Memory</span>
+
 </div>
 
+
+<p>
+Notice that the agent does <strong>not</strong> automatically load every
+old memory and it does <strong>not</strong> automatically save every output.
+Both sides require selection.
+</p>
+
+
+<h2>12.6 The Memory Read Policy</h2>
+
+<p>
+Before retrieving memory, the agent should ask:
+</p>
+
+<ol class="steps">
+
+  <li>
+    <strong>Is previous information actually useful for this task?</strong><br>
+    Some tasks should start clean.
+  </li>
+
+  <li>
+    <strong>Which memory scope applies?</strong><br>
+    User-level memory, project-level memory,
+    task-level memory, or organization-level memory?
+  </li>
+
+  <li>
+    <strong>How should the memory be retrieved?</strong><br>
+    Exact lookup, metadata filter, semantic similarity,
+    chronological search, or a combination?
+  </li>
+
+  <li>
+    <strong>Is the retrieved information still valid?</strong><br>
+    Check timestamps, source, confidence,
+    and whether newer information overrides it.
+  </li>
+
+  <li>
+    <strong>How much should enter the context?</strong><br>
+    Bring back the smallest amount of memory needed
+    to make the next decision.
+  </li>
+
+</ol>
+
+
+<h2>12.7 The Memory Write Policy</h2>
+
+<p>
+Saving everything is not memory.
+It is logging.
+</p>
+
+<p>
+Before storing something as reusable memory, ask:
+</p>
+
+<ul class="checklist" data-checklist>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Will this information probably be useful in a future task?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Is it stable enough that remembering it is safer than asking again?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Do I know which user, project, or workspace this memory belongs to?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Can I record where the information came from?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Should this memory expire or be reviewed after a certain time?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Is it safe and appropriate to persist this information?
+    </label>
+  </li>
+
+</ul>
+
+
+<div class="compare">
+
+  <div class="yes">
+    <h5>Good candidates for memory</h5>
+
+    <p>
+      Stable project conventions,
+      recurring preferences,
+      confirmed environment details,
+      reusable decisions,
+      successful fixes,
+      and durable workflow rules.
+    </p>
+  </div>
+
+  <div class="no">
+    <h5>Usually poor candidates</h5>
+
+    <p>
+      Temporary debugging output,
+      one-time calculations,
+      unverified assumptions,
+      outdated values,
+      raw logs,
+      duplicate history,
+      and every sentence from every conversation.
+    </p>
+  </div>
+
+</div>
+
+
+<h2>12.8 Why memory systems fail</h2>
+
+<div class="table-scroll">
+
+<table>
+
+  <caption>Common memory failure modes</caption>
+
+  <thead>
+    <tr>
+      <th>Failure</th>
+      <th>What happens</th>
+      <th>Better design</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Memory Pollution</strong></td>
+      <td>
+        Too much low-value information is saved.
+      </td>
+      <td>
+        Add a strict write policy and confidence threshold.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Stale Memory</strong></td>
+      <td>
+        An old fact is treated as if it is still current.
+      </td>
+      <td>
+        Store timestamps, source information,
+        expiry rules, and replacement logic.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Scope Leakage</strong></td>
+      <td>
+        Memory from one user or project influences another.
+      </td>
+      <td>
+        Separate memory namespaces and enforce access scope.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>False Memory</strong></td>
+      <td>
+        An inference or model-generated guess is stored as fact.
+      </td>
+      <td>
+        Distinguish confirmed facts from inferred information.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Context Flooding</strong></td>
+      <td>
+        Too many retrieved memories are inserted into the prompt.
+      </td>
+      <td>
+        Rank, filter, summarize, and limit retrieved memory.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>No Forgetting Strategy</strong></td>
+      <td>
+        Memory grows forever even when information becomes irrelevant.
+      </td>
+      <td>
+        Add expiration, superseding, deletion,
+        and archival policies.
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>12.9 Worked example — a Coding Agent</h2>
+
+<p>
+Imagine an agent helping a developer maintain the same project for six months.
+</p>
+
+<div class="callout spec">
+
+  <span class="label">What the agent may remember</span>
+
+  <p>
+    <strong>Project:</strong> Commerce Dashboard
+  </p>
+
+  <p>
+    <strong>Stable fact:</strong>
+    Backend database is PostgreSQL.
+  </p>
+
+  <p>
+    <strong>Project convention:</strong>
+    New frontend pages use React and Tailwind.
+  </p>
+
+  <p>
+    <strong>Reusable decision:</strong>
+    Authentication tokens are stored in session storage
+    rather than local storage for this application.
+  </p>
+
+  <p>
+    <strong>Known issue:</strong>
+    Pricing page previously failed because of a routing configuration error.
+  </p>
+
+</div>
+
+
+<p>
+Now imagine the user says:
+<strong>"Add another protected dashboard page."</strong>
+</p>
+
+<p>
+The memory flow could look like this:
+</p>
+
+<div class="flow">
+
+  <span class="node">New Request</span>
+  <span class="arr">→</span>
+
+  <span class="node">Retrieve Project Memory</span>
+  <span class="arr">→</span>
+
+  <span class="node">Filter Relevant Facts</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">
+    Use React + Tailwind + Existing Auth Pattern
+  </span>
+  <span class="arr">→</span>
+
+  <span class="node">Implement & Test</span>
+  <span class="arr">→</span>
+
+  <span class="node">Save New Durable Decision</span>
+
+</div>
+
+
+<div class="callout insight">
+  <span class="label">What should NOT be retrieved</span>
+
+  <p>
+    The agent does not need last month's terminal logs,
+    an unrelated CSV analysis,
+    every previous code diff,
+    or every message from every conversation.
+  </p>
+
+  <p>
+    Good memory reduces context.
+    Bad memory recreates context bloat somewhere else.
+  </p>
+</div>
+
+
+<h2>12.10 Memory and Multi-Agent Systems</h2>
+
+<p>
+Unit 11 introduced Supervisor and Worker Subagents.
+Memory becomes even more important in that architecture.
+</p>
+
+<div class="role-strip">
+
+  <div class="role-head">A practical separation</div>
+
+  <div class="role-row">
+    <div class="who">Supervisor</div>
+    <div class="what">
+      Holds the user goal, orchestration state,
+      important project memory,
+      and final decision context.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Worker Subagent</div>
+    <div class="what">
+      Receives only the task-specific context it needs,
+      performs the work,
+      and returns a condensed result.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Memory Layer</div>
+    <div class="what">
+      Stores durable information that should survive after
+      temporary worker contexts disappear.
+    </div>
+  </div>
+
+</div>
+
+
+<p>
+This allows temporary reasoning to disappear
+without losing durable project knowledge.
+</p>
+
+
+<h2>12.11 A better agent memory architecture</h2>
+
+<div class="flow">
+
+  <span class="node">User / Task</span>
+  <span class="arr">→</span>
+
+  <span class="node">Supervisor</span>
+  <span class="arr">→</span>
+
+  <span class="node">Memory Retrieval</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">Reason / Delegate / Act</span>
+  <span class="arr">→</span>
+
+  <span class="node">Evaluate Result</span>
+  <span class="arr">→</span>
+
+  <span class="node">Memory Write Decision</span>
+  <span class="arr">↺</span>
+
+</div>
+
+
+<div class="callout synthesis">
+  <span class="label">The key design principle</span>
+
+  <p>
+    <strong>
+      Retrieve only what is useful.
+      Persist only what is worth remembering.
+    </strong>
+  </p>
+
+  <p>
+    Memory should make future reasoning easier,
+    not turn every future prompt into a replay of the past.
+  </p>
+</div>
+
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+
+  <div class="quiz-head">
+    <span>Retrieval check</span>
+    <span class="score"></span>
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">1</span>
+      What is the best description of agent memory?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Memory stores useful information so that it can be retrieved during a later task or session."
+      >
+        Information persisted so it can be retrieved when useful later.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. The current context window is working context, not the complete definition of persistent memory."
+      >
+        Everything currently inside the model's context window.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. A Vector Database can support memory, but agent memory is a broader architectural concept."
+      >
+        A Vector Database connected to an LLM.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">2</span>
+      Should an agent automatically save every conversation and tool result as long-term memory?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Saving everything creates memory pollution and makes future retrieval less reliable."
+      >
+        Yes. More memory is always better.
+      </button>
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Long-term memory should contain information likely to be useful again, not every temporary detail."
+      >
+        No. It should save only information that passes a memory write policy.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Agents can use persistent memory, but persistence should be selective."
+      >
+        No. Agents should never store information between sessions.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">3</span>
+      Which is the clearest example of stale memory?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. The agent is using an old value even though the underlying information has changed."
+      >
+        The agent remembers an old API endpoint after the project has migrated to a new endpoint.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Retrieving a confirmed current project convention is an appropriate use of memory."
+      >
+        The agent retrieves the project's current naming convention before creating a file.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Temporary test output can remain in working memory while the current task is running."
+      >
+        The agent keeps a test result available while debugging the same task.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">4</span>
+      Why should memory be separated by user, project, or workspace?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Memory scopes prevent information from one user or project from incorrectly influencing another."
+      >
+        To prevent memory scope leakage.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Memory separation is primarily about correctness, access boundaries, and relevance."
+      >
+        Only to make the database faster.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Separate memory scopes are useful even when the same model serves every user."
+      >
+        Because every project must use a different LLM.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+</div>
+
+
+<h2>Activity: design a Memory Policy</h2>
+
+<p>
+Choose one agent you would actually build.
+Define what it should remember,
+what it should forget,
+and how it should retrieve memory later.
+</p>
+
+
+<div class="drill" data-drill>
+
+<textarea placeholder="AGENT: Coding Assistant
+
+WORKING MEMORY:
+- Current user request
+- Files currently being edited
+- Latest test results
+
+LONG-TERM MEMORY:
+- Project framework
+- Naming conventions
+- Confirmed architectural decisions
+- User's stable output preferences
+
+DO NOT STORE:
+- Raw temporary logs
+- One-time calculations
+- Unverified guesses
+- Secrets or unnecessary sensitive information
+
+MEMORY SCOPE:
+- Project-level memory
+
+RETRIEVAL:
+- Exact lookup for known project settings
+- Semantic search for previous technical decisions
+
+STALE MEMORY POLICY:
+- Store timestamps
+- New confirmed decisions supersede older ones
+- Ask or verify when confidence is low"></textarea>
+
+  <button class="btn" data-check>
+    Check my memory design
+  </button>
+
+  <div class="drill-result"></div>
+
+  <script type="application/json" data-rubric>
+  [
+    {
+      "label": "Defines the agent or workflow",
+      "re": "agent|assistant|workflow|system"
+    },
+    {
+      "label": "Defines working or short-term memory",
+      "re": "working memory|short-term|current task|current request|temporary"
+    },
+    {
+      "label": "Defines long-term memory",
+      "re": "long-term|persistent|remember|project convention|preference|decision"
+    },
+    {
+      "label": "Defines information that should not be stored",
+      "re": "do not store|don't store|never store|forget|exclude|temporary logs|secrets|unverified"
+    },
+    {
+      "label": "Defines a memory scope",
+      "re": "scope|project-level|user-level|workspace|organization"
+    },
+    {
+      "label": "Defines how memory will be retrieved",
+      "re": "retriev|lookup|semantic|vector|metadata|search"
+    },
+    {
+      "label": "Includes stale-memory handling",
+      "re": "stale|timestamp|expire|supersede|replace|verify|confidence"
+    }
+  ]
+  </script>
+
+</div>
+
+
+<div class="callout insight">
+  <span class="label">What comes next</span>
+
+  <p>
+    Memory answers:
+    <strong>"What useful information from the past should this agent remember?"</strong>
+  </p>
+
+  <p>
+    Unit 13 introduces another problem:
+    <strong>"When the answer is not in memory, how should the agent search external knowledge?"</strong>
+  </p>
+
+  <p>
+    That leads directly to
+    <strong>Agentic RAG & Knowledge Retrieval.</strong>
+  </p>
+</div>
+
+
+<nav class="lesson-nav">
+
+  <a href="0011-advanced-orchestration.html">
+    ← Unit 11
+  </a>
+
+  <span class="spacer"></span>
+
+  <a href="0013-agentic-rag-and-knowledge-retrieval.html">
+    Unit 13 →
+  </a>
+
+</nav>
+
+
 </main>
+
+<script src="../assets/lesson.js"></script>
+
 </body>
 </html>

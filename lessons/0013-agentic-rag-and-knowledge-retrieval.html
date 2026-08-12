@@ -6,43 +6,1554 @@
 <title>Unit 13 — Agentic RAG & Knowledge Retrieval</title>
 <link rel="stylesheet" href="../assets/course.css">
 </head>
+
 <body>
 <main class="page">
 
 <header class="masthead">
-  <p class="eyebrow">Agent Skills · Unit 13 of 13</p>
+  <p class="eyebrow">Agent Skills · Unit 13 · Knowledge Retrieval</p>
+
   <h1>Agentic RAG & Knowledge Retrieval</h1>
-  <p class="question">How do agents dynamically decide when and how to search external knowledge bases?</p>
+
+  <p class="question">
+    When an agent does not already know enough,
+    how should it decide what to search, where to search,
+    whether the evidence is useful, and when to stop?
+  </p>
+
   <div class="meta">
-    <span><strong>Time</strong> 20 minutes</span>
-    <span><strong>You will learn</strong> Query Rewriting, Self-Correction, and Tool-augmented RAG</span>
+    <span><strong>Time</strong> 30 minutes</span>
+
+    <span>
+      <strong>You will be able to</strong>
+      design an agentic retrieval workflow that searches selectively,
+      evaluates evidence, retries intelligently, and answers from grounded information
+    </span>
+
+    <span>
+      <strong>Prerequisites</strong>
+      <a href="0012-agent-memory-and-persistence.html">Unit 12</a>
+    </span>
   </div>
 </header>
 
-<p class="lede">Traditional RAG blindly retrieves documents for every user prompt. Agentic RAG gives the AI control to evaluate retrieved chunks, rewrite queries if necessary, and decide if external search is even required.</p>
 
-<h2>13.1 Traditional RAG vs. Agentic RAG</h2>
+<div class="callout synthesis">
+  <span class="label">The core idea</span>
 
-<div class="card-grid">
-  <div class="card">
-    <span class="num">Traditional</span>
-    <h5>Static Pipeline</h5>
-    <p>User Prompt -> Vector Search -> Fixed LLM Generation (No reasoning about retrieval quality).</p>
-  </div>
-  <div class="card">
-    <span class="num">Agentic</span>
-    <h5>Dynamic Reasoning Loop</h5>
-    <p>User Prompt -> Agent Decides to Search -> Evaluates Quality -> Rewrites/Loops if needed -> Final Output.</p>
-  </div>
+  <p>
+    RAG stands for <strong>Retrieval-Augmented Generation</strong>.
+  </p>
+
+  <p>
+    Instead of forcing the model to answer only from information
+    already inside its context, a retrieval system can search external
+    knowledge and bring relevant evidence into the context.
+  </p>
+
+  <p>
+    <strong>Agentic RAG</strong> adds decision-making around that process.
+    The agent can decide whether retrieval is needed,
+    choose a source, improve the search query,
+    evaluate results, retry when necessary,
+    and stop when enough evidence has been collected.
+  </p>
 </div>
 
-<h2>13.2 Core Capabilities</h2>
-<ul>
-  <li><strong>Query Decomposition:</strong> Breaking a complex question into simpler sub-queries.</li>
-  <li><strong>Relevance Grading:</strong> Filtering out irrelevant search results before passing them to the LLM context.</li>
-  <li><strong>Fallback Actions:</strong> Deciding to use web search or code execution when local vector search fails.</li>
+
+<h2>13.1 Memory and RAG solve different problems</h2>
+
+<p>
+Unit 12 introduced memory.
+Memory and retrieval are connected, but they are not the same thing.
+</p>
+
+<div class="table-scroll">
+<table>
+
+  <caption>Memory vs. RAG</caption>
+
+  <thead>
+    <tr>
+      <th>Dimension</th>
+      <th>Memory</th>
+      <th>RAG / Knowledge Retrieval</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Main question</strong></td>
+      <td>
+        What useful information from previous work should the agent remember?
+      </td>
+      <td>
+        What external information should the agent retrieve for this task?
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Typical information</strong></td>
+      <td>
+        User preferences, project decisions,
+        previous task state, recurring facts
+      </td>
+      <td>
+        Documentation, policies, reports,
+        research papers, manuals, databases
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Primary purpose</strong></td>
+      <td>
+        Continuity
+      </td>
+      <td>
+        Evidence and knowledge
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Typical trigger</strong></td>
+      <td>
+        Previous information is relevant to the current task
+      </td>
+      <td>
+        The current context does not contain enough reliable information
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<div class="callout insight">
+  <span class="label">Simple mental model</span>
+
+  <p>
+    <strong>Memory:</strong>
+    "What have I learned from previous work?"
+  </p>
+
+  <p>
+    <strong>RAG:</strong>
+    "What information should I look up now?"
+  </p>
+</div>
+
+
+<h2>13.2 Fixed RAG vs. Agentic RAG</h2>
+
+<p>
+A conventional RAG application often uses a predefined retrieval pipeline.
+That is useful and may be all that many applications need.
+</p>
+
+<p>
+Agentic RAG becomes useful when the system needs to make
+<strong>decisions about retrieval itself</strong>.
+</p>
+
+
+<div class="card-grid">
+
+  <div class="card">
+    <span class="num">Fixed RAG</span>
+    <h5>Predefined Retrieval Pipeline</h5>
+
+    <p>
+      The application follows a known sequence such as:
+      receive query → retrieve documents → send retrieved context
+      to the model → generate answer.
+    </p>
+  </div>
+
+
+  <div class="card">
+    <span class="num">Agentic RAG</span>
+    <h5>Adaptive Retrieval</h5>
+
+    <p>
+      The agent can decide whether retrieval is necessary,
+      choose a retrieval strategy, inspect the evidence,
+      rewrite the query, use another source,
+      or stop when enough information has been found.
+    </p>
+  </div>
+
+</div>
+
+
+<div class="compare">
+
+  <div class="yes">
+    <h5>Use a simpler RAG pipeline when</h5>
+
+    <p>
+      The source is known,
+      questions are predictable,
+      one retrieval step is usually enough,
+      and the cost of additional reasoning would add little value.
+    </p>
+  </div>
+
+  <div class="no">
+    <h5>Consider Agentic RAG when</h5>
+
+    <p>
+      Questions are complex,
+      several sources may be needed,
+      retrieval quality varies,
+      queries need decomposition,
+      or the system must verify evidence before answering.
+    </p>
+  </div>
+
+</div>
+
+
+<h2>13.3 The Agentic Retrieval Loop</h2>
+
+<p>
+Instead of treating retrieval as a single search call,
+an agent can treat it as a controlled reasoning loop.
+</p>
+
+<div class="flow">
+
+  <span class="node">User Question</span>
+  <span class="arr">→</span>
+
+  <span class="node">Need Retrieval?</span>
+  <span class="arr">→</span>
+
+  <span class="node">Plan Search</span>
+  <span class="arr">→</span>
+
+  <span class="node">Retrieve Evidence</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">Evaluate Evidence</span>
+  <span class="arr">→</span>
+
+  <span class="node">Enough?</span>
+  <span class="arr">→</span>
+
+  <span class="node">Answer</span>
+
+</div>
+
+
+<p>
+If the evidence is weak, the agent can loop:
+</p>
+
+<div class="flow">
+
+  <span class="node">Weak Evidence</span>
+  <span class="arr">→</span>
+
+  <span class="node">Rewrite Query</span>
+  <span class="arr">→</span>
+
+  <span class="node">Try Better Source</span>
+  <span class="arr">→</span>
+
+  <span class="node">Retrieve Again</span>
+  <span class="arr">↺</span>
+
+</div>
+
+
+<div class="callout warning">
+  <span class="label">Agentic does not mean search forever</span>
+
+  <p>
+    Every retrieval loop should have a
+    <strong>budget and stopping condition</strong>.
+  </p>
+
+  <p>
+    Otherwise the agent can waste time,
+    money, tokens, and context on searches
+    that are no longer improving the answer.
+  </p>
+</div>
+
+
+<h2>13.4 Step 1 — Decide whether retrieval is needed</h2>
+
+<p>
+The first retrieval decision should often be:
+<strong>"Do I need to search at all?"</strong>
+</p>
+
+<div class="role-strip">
+
+  <div class="role-head">Possible decisions</div>
+
+  <div class="role-row">
+    <div class="who">No Retrieval</div>
+    <div class="what">
+      The current context already contains enough information
+      to complete the task.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Retrieve Memory</div>
+    <div class="what">
+      Previous project or user information is needed.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Retrieve Knowledge</div>
+    <div class="what">
+      External documents, databases, manuals,
+      or knowledge bases are needed.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Use Another Tool</div>
+    <div class="what">
+      The task needs calculation, code execution,
+      an API, database query, or another capability
+      rather than document retrieval.
+    </div>
+  </div>
+
+</div>
+
+
+<h2>13.5 Step 2 — Understand the information need</h2>
+
+<p>
+Before searching, the agent should identify
+what information is actually missing.
+</p>
+
+<ol class="steps">
+
+  <li>
+    <strong>Identify the target.</strong><br>
+    What fact, explanation, comparison,
+    procedure, or evidence is required?
+  </li>
+
+  <li>
+    <strong>Identify constraints.</strong><br>
+    Does the answer depend on date,
+    product version, region, department,
+    document type, or another filter?
+  </li>
+
+  <li>
+    <strong>Identify the best source.</strong><br>
+    Which knowledge source is most likely
+    to contain reliable evidence?
+  </li>
+
+  <li>
+    <strong>Determine whether the question should be decomposed.</strong><br>
+    A complex question may require multiple smaller searches.
+  </li>
+
+</ol>
+
+
+<h2>13.6 Query Decomposition</h2>
+
+<p>
+Complex questions often contain several information needs.
+Trying to solve all of them with one retrieval query can produce weak results.
+</p>
+
+
+<div class="callout spec">
+
+  <span class="label">Example user question</span>
+
+  <p>
+    "Compare our current refund policy with last year's policy
+    and explain what changed for international customers."
+  </p>
+
+</div>
+
+
+<p>
+An agent could decompose that into:
+</p>
+
+<div class="flow">
+
+  <span class="node">Find Current Refund Policy</span>
+  <span class="arr">+</span>
+
+  <span class="node">Find Previous Policy</span>
+  <span class="arr">+</span>
+
+  <span class="node">Extract International Rules</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">Compare Changes</span>
+
+</div>
+
+
+<div class="callout insight">
+  <span class="label">Why decomposition helps</span>
+
+  <p>
+    Each search now has a clear information target.
+    Results can be evaluated independently
+    before the final comparison is produced.
+  </p>
+</div>
+
+
+<h2>13.7 Query Rewriting</h2>
+
+<p>
+The user's wording is not always the best retrieval query.
+The agent may need to rewrite it without changing its meaning.
+</p>
+
+
+<div class="table-scroll">
+<table>
+
+  <caption>Examples of query improvement</caption>
+
+  <thead>
+    <tr>
+      <th>User wording</th>
+      <th>Possible retrieval query</th>
+      <th>Reason</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td>
+        "Why does login fail sometimes?"
+      </td>
+      <td>
+        authentication intermittent login failure session token
+      </td>
+      <td>
+        Adds domain-specific search terms.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        "What changed?"
+      </td>
+      <td>
+        refund policy revision changes 2025 2026
+      </td>
+      <td>
+        Adds subject and time constraints.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        "How do I configure it?"
+      </td>
+      <td>
+        product-name version configuration setup documentation
+      </td>
+      <td>
+        Resolves ambiguous wording using known context.
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>13.8 Source Routing</h2>
+
+<p>
+A strong retrieval agent does not send every question
+to the same search system.
+</p>
+
+<div class="role-strip">
+
+  <div class="role-head">Route the question to the best source</div>
+
+  <div class="role-row">
+    <div class="who">Product Documentation</div>
+    <div class="what">
+      Setup instructions, configuration,
+      API behavior, feature descriptions
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Internal Knowledge Base</div>
+    <div class="what">
+      Company procedures, policies,
+      team documentation, decisions
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Database</div>
+    <div class="what">
+      Structured records, transactions,
+      inventory, users, operational data
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Web Search</div>
+    <div class="what">
+      Public or rapidly changing information
+      when external search is appropriate
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Memory</div>
+    <div class="what">
+      Previous user preferences,
+      project conventions, and durable decisions
+    </div>
+  </div>
+
+</div>
+
+
+<div class="callout warning">
+  <span class="label">Source quality matters</span>
+
+  <p>
+    Retrieval is not successful merely because
+    the system found text related to the query.
+  </p>
+
+  <p>
+    The agent must also consider
+    <strong>authority, freshness, scope, relevance,
+    and provenance</strong>.
+  </p>
+</div>
+
+
+<h2>13.9 Retrieval strategies</h2>
+
+<p>
+Different search methods find different kinds of information.
+A good system may combine several methods.
+</p>
+
+<div class="table-scroll">
+<table>
+
+  <caption>Common retrieval strategies</caption>
+
+  <thead>
+    <tr>
+      <th>Strategy</th>
+      <th>Good for</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Keyword Search</strong></td>
+      <td>
+        Exact terms, identifiers,
+        error codes, names
+      </td>
+      <td>
+        "HTTP 429"
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Semantic Search</strong></td>
+      <td>
+        Meaning-based matching
+        when wording may differ
+      </td>
+      <td>
+        "Unable to access account"
+        matching documents about login problems
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Metadata Filtering</strong></td>
+      <td>
+        Restricting results by date,
+        version, department, author, region
+      </td>
+      <td>
+        Only documents for Product v4
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Hybrid Retrieval</strong></td>
+      <td>
+        Combining lexical and semantic signals
+      </td>
+      <td>
+        Exact product code + conceptual similarity
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Reranking</strong></td>
+      <td>
+        Reordering candidate results
+        after an initial retrieval step
+      </td>
+      <td>
+        Selecting the best 5 chunks
+        from 30 retrieved candidates
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>13.10 Chunking and Context Quality</h2>
+
+<p>
+Retrieval systems usually do not send an entire knowledge base
+to the model.
+Documents are commonly divided into smaller retrievable units,
+often called <strong>chunks</strong>.
+</p>
+
+
+<div class="compare">
+
+  <div class="yes">
+    <h5>Useful chunks</h5>
+
+    <p>
+      Preserve enough surrounding context
+      to understand the meaning,
+      section, subject, and source.
+    </p>
+  </div>
+
+  <div class="no">
+    <h5>Poor chunks</h5>
+
+    <p>
+      Split information in the middle of an idea,
+      remove essential headings,
+      or return isolated sentences
+      with no useful context.
+    </p>
+  </div>
+
+</div>
+
+
+<div class="callout insight">
+  <span class="label">Retrieval quality is not only an embedding problem</span>
+
+  <p>
+    Document structure, chunk boundaries,
+    metadata, query quality, filtering,
+    reranking, and source selection
+    all affect the final result.
+  </p>
+</div>
+
+
+<h2>13.11 Evidence Grading</h2>
+
+<p>
+After retrieval, the agent should not immediately assume
+that every result is useful.
+</p>
+
+<p>
+For each important piece of evidence, evaluate:
+</p>
+
+<ul class="checklist" data-checklist>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Is this result actually relevant to the user's question?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Does it come from the correct source or authority?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Is it current enough for this question?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Does the text directly support the claim I want to make?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Does another retrieved source contradict it?
+    </label>
+  </li>
+
+  <li>
+    <input type="checkbox">
+    <label>
+      Do I have enough evidence to answer confidently?
+    </label>
+  </li>
+
 </ul>
 
+
+<h2>13.12 What if retrieval fails?</h2>
+
+<p>
+An agentic retrieval system needs a recovery strategy.
+</p>
+
+<div class="flow">
+
+  <span class="node">Poor Results</span>
+  <span class="arr">→</span>
+
+  <span class="node">Diagnose Why</span>
+  <span class="arr">→</span>
+
+  <span class="node">Rewrite Query</span>
+  <span class="arr">→</span>
+
+  <span class="node">Change Filter / Source</span>
+  <span class="arr">→</span>
+
+  <span class="node">Retrieve Again</span>
+
+</div>
+
+
+<p>
+Possible fallback actions include:
+</p>
+
+<ul>
+  <li>Rewrite the search query.</li>
+  <li>Break the question into smaller searches.</li>
+  <li>Remove an overly restrictive filter.</li>
+  <li>Add a missing metadata filter.</li>
+  <li>Try keyword search instead of semantic search.</li>
+  <li>Try semantic search instead of exact keyword search.</li>
+  <li>Search a different authorized knowledge source.</li>
+  <li>Ask the user for missing information when necessary.</li>
+  <li>Return an explicit "insufficient evidence" result instead of guessing.</li>
+</ul>
+
+
+<div class="callout synthesis">
+  <span class="label">Self-correction does not mean inventing evidence</span>
+
+  <p>
+    If retrieval repeatedly fails,
+    the agent should eventually stop.
+  </p>
+
+  <p>
+    A trustworthy agent can say:
+    <strong>"I could not find enough evidence to support that answer."</strong>
+  </p>
+</div>
+
+
+<h2>13.13 Conflicting Evidence</h2>
+
+<p>
+Sometimes retrieval succeeds but different sources disagree.
+That creates a different problem.
+</p>
+
+<ol class="steps">
+
+  <li>
+    <strong>Identify the conflict.</strong><br>
+    Do not silently combine contradictory claims.
+  </li>
+
+  <li>
+    <strong>Compare authority.</strong><br>
+    Prefer the source that is authoritative for the question.
+  </li>
+
+  <li>
+    <strong>Compare dates and versions.</strong><br>
+    One source may simply be outdated.
+  </li>
+
+  <li>
+    <strong>Check scope.</strong><br>
+    Different rules may apply to different products,
+    countries, teams, or customer types.
+  </li>
+
+  <li>
+    <strong>Expose unresolved disagreement.</strong><br>
+    If the conflict cannot be resolved,
+    explain that clearly instead of choosing arbitrarily.
+  </li>
+
+</ol>
+
+
+<h2>13.14 Provenance and Citations</h2>
+
+<p>
+The agent should retain enough metadata
+to know where important evidence came from.
+</p>
+
+<div class="callout spec">
+
+  <span class="label">Useful provenance metadata</span>
+
+  <p>
+    <strong>Source:</strong> Customer Refund Policy
+  </p>
+
+  <p>
+    <strong>Section:</strong> International Orders
+  </p>
+
+  <p>
+    <strong>Version:</strong> 4.2
+  </p>
+
+  <p>
+    <strong>Updated:</strong> 2026-06-10
+  </p>
+
+  <p>
+    <strong>Document ID:</strong> POLICY-REFUND-042
+  </p>
+
+</div>
+
+
+<p>
+This makes it easier to:
+</p>
+
+<ul>
+  <li>cite evidence,</li>
+  <li>debug incorrect answers,</li>
+  <li>detect outdated documents,</li>
+  <li>compare conflicting sources,</li>
+  <li>and audit important decisions.</li>
+</ul>
+
+
+<h2>13.15 Retrieval Budgets and Stop Conditions</h2>
+
+<p>
+Agentic retrieval needs boundaries.
+More retrieval is not automatically better.
+</p>
+
+<div class="table-scroll">
+<table>
+
+  <caption>Useful retrieval limits</caption>
+
+  <thead>
+    <tr>
+      <th>Budget</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Maximum Search Attempts</strong></td>
+      <td>
+        Retry at most three times.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Maximum Retrieved Chunks</strong></td>
+      <td>
+        Keep only the strongest five pieces of evidence.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Time Budget</strong></td>
+      <td>
+        Stop retrieval after the allowed execution window.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Evidence Threshold</strong></td>
+      <td>
+        Stop once the answer is sufficiently supported.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Fallback Condition</strong></td>
+      <td>
+        If the trusted knowledge base has no evidence,
+        return uncertainty instead of continuing indefinitely.
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>13.16 Common Agentic RAG failure modes</h2>
+
+<div class="table-scroll">
+<table>
+
+  <caption>What can go wrong?</caption>
+
+  <thead>
+    <tr>
+      <th>Failure</th>
+      <th>What happens</th>
+      <th>Better design</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <tr>
+      <td><strong>Unnecessary Retrieval</strong></td>
+      <td>
+        The agent searches even when the answer
+        is already in the current context.
+      </td>
+      <td>
+        Add a retrieval decision step.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Poor Query</strong></td>
+      <td>
+        The search does not describe
+        the real information need.
+      </td>
+      <td>
+        Rewrite or decompose the query.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Wrong Source</strong></td>
+      <td>
+        The agent searches somewhere
+        that cannot reliably answer the question.
+      </td>
+      <td>
+        Add source routing.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Context Flooding</strong></td>
+      <td>
+        Too many chunks are passed to the model.
+      </td>
+      <td>
+        Filter and rerank results before generation.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Stale Evidence</strong></td>
+      <td>
+        Old documentation overrides newer information.
+      </td>
+      <td>
+        Use version and freshness metadata.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Unsupported Answer</strong></td>
+      <td>
+        The model makes claims
+        that retrieved evidence does not support.
+      </td>
+      <td>
+        Grade evidence and ground claims explicitly.
+      </td>
+    </tr>
+
+    <tr>
+      <td><strong>Infinite Retrieval Loop</strong></td>
+      <td>
+        The agent keeps rewriting and searching.
+      </td>
+      <td>
+        Add budgets and stop conditions.
+      </td>
+    </tr>
+
+  </tbody>
+
+</table>
+</div>
+
+
+<h2>13.17 Worked example — Technical Support Agent</h2>
+
+<div class="callout spec">
+
+  <span class="label">User question</span>
+
+  <p>
+    "Our application started returning authentication errors
+    after yesterday's deployment. What changed and how should we fix it?"
+  </p>
+
+</div>
+
+
+<p>
+A well-designed agent could reason through the retrieval task like this:
+</p>
+
+<ol class="steps">
+
+  <li>
+    <strong>Determine that retrieval is needed.</strong><br>
+    The answer depends on project-specific,
+    recent deployment information.
+  </li>
+
+  <li>
+    <strong>Decompose the question.</strong><br>
+    Search deployment changes,
+    authentication configuration,
+    and relevant error documentation.
+  </li>
+
+  <li>
+    <strong>Route searches.</strong><br>
+    Use deployment logs for changes,
+    internal documentation for configuration,
+    and product documentation for error behavior.
+  </li>
+
+  <li>
+    <strong>Retrieve candidate evidence.</strong>
+  </li>
+
+  <li>
+    <strong>Grade and rerank evidence.</strong><br>
+    Keep only information related to the affected deployment
+    and authentication system.
+  </li>
+
+  <li>
+    <strong>Compare evidence.</strong><br>
+    Check whether yesterday's configuration
+    differs from the previously working configuration.
+  </li>
+
+  <li>
+    <strong>Answer with evidence.</strong><br>
+    Explain the likely cause,
+    identify the relevant change,
+    and propose a fix supported by the retrieved material.
+  </li>
+
+</ol>
+
+
+<div class="flow">
+
+  <span class="node">Question</span>
+  <span class="arr">→</span>
+
+  <span class="node">Deployment Search</span>
+  <span class="arr">+</span>
+
+  <span class="node">Auth Docs</span>
+  <span class="arr">+</span>
+
+  <span class="node">Error Reference</span>
+  <span class="arr">→</span>
+
+  <span class="node hi">Evidence Comparison</span>
+  <span class="arr">→</span>
+
+  <span class="node">Grounded Fix</span>
+
+</div>
+
+
+<h2>13.18 Memory + RAG + Tools</h2>
+
+<p>
+A capable agent may combine all three.
+</p>
+
+<div class="role-strip">
+
+  <div class="role-head">Example architecture</div>
+
+  <div class="role-row">
+    <div class="who">Memory</div>
+    <div class="what">
+      "This project uses PostgreSQL and React."
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">RAG</div>
+    <div class="what">
+      Retrieve the project's current database migration
+      and authentication documentation.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Tool</div>
+    <div class="what">
+      Run tests, inspect database state,
+      query logs, or execute code.
+    </div>
+  </div>
+
+  <div class="role-row">
+    <div class="who">Agent</div>
+    <div class="what">
+      Decide which capability is needed,
+      combine the results,
+      evaluate them,
+      and choose the next action.
+    </div>
+  </div>
+
+</div>
+
+
+<div class="callout synthesis">
+  <span class="label">The full picture</span>
+
+  <p>
+    <strong>Memory</strong> provides continuity.
+  </p>
+
+  <p>
+    <strong>Retrieval</strong> provides external knowledge.
+  </p>
+
+  <p>
+    <strong>Tools</strong> provide actions and observations.
+  </p>
+
+  <p>
+    <strong>The agent</strong> decides how to use them together.
+  </p>
+</div>
+
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-quiz>
+
+  <div class="quiz-head">
+    <span>Retrieval check</span>
+    <span class="score"></span>
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">1</span>
+      What is the main difference between a fixed RAG pipeline
+      and Agentic RAG?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Agentic RAG introduces decisions about whether, where, and how retrieval should happen."
+      >
+        Agentic RAG allows the agent to make decisions around the retrieval process.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Vector search can be used by both fixed and agentic retrieval systems."
+      >
+        Only Agentic RAG can use vector search.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Agentic RAG still needs reliable information sources."
+      >
+        Agentic RAG does not need a knowledge base.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">2</span>
+      The first retrieval attempt returns irrelevant documents.
+      What is a reasonable agentic response?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Generating from irrelevant evidence can create an unsupported answer."
+      >
+        Generate the answer anyway.
+      </button>
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. The agent can diagnose the failure, rewrite the query, change strategy, and retry within its retrieval budget."
+      >
+        Rewrite the query or change the retrieval strategy and try again.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Storing irrelevant results would create memory pollution rather than solve the retrieval problem."
+      >
+        Save all retrieved documents into long-term memory.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">3</span>
+      Why is reranking useful?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Reranking helps choose the strongest results from a larger candidate set before they enter the model context."
+      >
+        It helps prioritize the most relevant evidence before generation.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Reranking does not make retrieval unnecessary."
+      >
+        It removes the need to retrieve documents.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Reranking and long-term memory are different components."
+      >
+        It automatically converts retrieved documents into permanent memory.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">4</span>
+      What should an agent do when trusted sources
+      do not contain enough evidence?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Guessing would defeat the purpose of grounded retrieval."
+      >
+        Guess the most likely answer.
+      </button>
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. After reasonable retrieval attempts, the agent should expose the evidence gap rather than invent an answer."
+      >
+        Report that the available evidence is insufficient.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. More retrieved text is not useful when the source cannot answer the question."
+      >
+        Continue searching forever.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+
+  <div class="q" data-q>
+
+    <p class="stem">
+      <span class="qn">5</span>
+      A question asks about a policy that changed recently.
+      Which retrieval property becomes especially important?
+    </p>
+
+    <div class="opts">
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Semantic similarity alone cannot determine whether a document is current."
+      >
+        Semantic similarity only.
+      </button>
+
+      <button
+        class="opt"
+        data-correct
+        data-fb="Correct. Version and freshness metadata help prevent outdated evidence from overriding current information."
+      >
+        Document freshness and version metadata.
+      </button>
+
+      <button
+        class="opt"
+        data-fb="Incorrect. Saving more memories does not determine which policy version is current."
+      >
+        Increasing long-term memory size.
+      </button>
+
+    </div>
+
+    <div class="feedback"></div>
+
+  </div>
+
+</div>
+
+
+<h2>Activity: design an Agentic RAG workflow</h2>
+
+<p>
+Choose an agent that needs external knowledge.
+Design how it should decide to retrieve,
+search, evaluate evidence, retry,
+and stop.
+</p>
+
+
+<div class="drill" data-drill>
+
+<textarea placeholder="AGENT:
+Technical Support Agent
+
+KNOWLEDGE SOURCES:
+- Product documentation
+- Internal troubleshooting guides
+- Release notes
+
+WHEN TO RETRIEVE:
+- When the answer depends on product-specific information
+- When current context does not contain enough evidence
+
+QUERY PLANNING:
+- Identify product and version
+- Extract error code
+- Decompose complex questions
+
+RETRIEVAL:
+- Keyword search for exact error codes
+- Semantic search for similar symptoms
+- Filter by product version
+
+EVIDENCE CHECK:
+- Relevance
+- Source authority
+- Version
+- Freshness
+
+RETRY:
+- Rewrite query
+- Try another authorized source
+
+STOP CONDITION:
+- Enough evidence to support the answer
+- Or maximum 3 retrieval attempts
+
+OUTPUT:
+- Answer from retrieved evidence
+- Preserve source information
+- State uncertainty if evidence is insufficient"></textarea>
+
+  <button class="btn" data-check>
+    Check my retrieval design
+  </button>
+
+  <div class="drill-result"></div>
+
+  <script type="application/json" data-rubric>
+  [
+    {
+      "label": "Defines an agent or workflow",
+      "re": "agent|assistant|workflow|system"
+    },
+    {
+      "label": "Defines knowledge sources",
+      "re": "source|documentation|knowledge|database|web|manual|policy|guide"
+    },
+    {
+      "label": "Defines when retrieval should happen",
+      "re": "when to retrieve|retrieve when|retrieval needed|need retrieval|when the answer"
+    },
+    {
+      "label": "Includes query planning, rewriting, or decomposition",
+      "re": "query|rewrite|decompos|sub-query|search terms"
+    },
+    {
+      "label": "Defines a retrieval strategy",
+      "re": "semantic|keyword|hybrid|metadata|filter|vector|search"
+    },
+    {
+      "label": "Includes evidence evaluation",
+      "re": "evidence|relevance|authority|freshness|version|quality|grade|rerank"
+    },
+    {
+      "label": "Includes retry or fallback behavior",
+      "re": "retry|fallback|rewrite|another source|try again"
+    },
+    {
+      "label": "Defines a stopping condition or retrieval budget",
+      "re": "stop|maximum|max|budget|attempt|enough evidence|limit"
+    },
+    {
+      "label": "Handles insufficient evidence",
+      "re": "insufficient|uncertain|uncertainty|cannot find|not enough evidence"
+    }
+  ]
+  </script>
+
+</div>
+
+
+<div class="callout synthesis">
+  <span class="label">Final takeaway</span>
+
+  <p>
+    Agentic RAG is not simply:
+    <strong>"Give an LLM a Vector Database."</strong>
+  </p>
+
+  <p>
+    It is a controlled workflow in which the agent can:
+  </p>
+
+  <p>
+    <strong>
+      Decide → Search → Evaluate → Refine → Verify → Stop → Answer
+    </strong>
+  </p>
+
+  <p>
+    The goal is not maximum retrieval.
+    The goal is the
+    <strong>minimum reliable evidence required to complete the task well.</strong>
+  </p>
+</div>
+
+
+<nav class="lesson-nav">
+
+  <a href="0012-agent-memory-and-persistence.html">
+    ← Unit 12
+  </a>
+
+  <span class="spacer"></span>
+
+  <a href="../index.html">
+    Course Home
+  </a>
+
+</nav>
+
+
 </main>
+
+<script src="../assets/lesson.js"></script>
+
 </body>
 </html>
