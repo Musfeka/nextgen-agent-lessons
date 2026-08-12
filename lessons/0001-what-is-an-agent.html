@@ -1,1 +1,347 @@
-<html><body><h1>Lesson 1: What is an Agent</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 1 — What is an Agent?</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 1 of 10</p>
+  <h1>What is an Agent?</h1>
+  <p class="question">And what makes it different from the chatbot you already use?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 12 minutes</span>
+    <span><strong>You will be able to</strong> name any AI task as prompt, tool, Skill, workflow or agent</span>
+    <span><strong>Prerequisites</strong> none</span>
+  </div>
+</header>
+
+<p class="lede">Almost everyone on your team has used a chatbot. Almost nobody has used an agent.
+The gap between those two things is the whole subject of this course — and it is smaller and more
+practical than the word "agent" makes it sound.</p>
+
+<h2>1.1 The ladder your team is standing on</h2>
+
+<p>There is a progression here, and each rung adds exactly one thing. Most confusion about AI comes
+from people standing on different rungs while using the same word.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">Rung 1</span>
+    <h5>Automation</h5>
+    <p>Fixed rules, written by a human, run by a machine. A Jira workflow that moves a ticket when a
+    box is ticked. No judgement.</p>
+  </div>
+  <div class="card">
+    <span class="num">Rung 2</span>
+    <h5>Chatbot</h5>
+    <p>Judgement, but no hands and no memory of your world. It answers. You do everything else.</p>
+  </div>
+  <div class="card">
+    <span class="num">Rung 3</span>
+    <h5>Copilot</h5>
+    <p>Sits inside your work — your document, your code — and suggests. You still drive every step.</p>
+  </div>
+  <div class="card">
+    <span class="num">Rung 4</span>
+    <h5>Agent</h5>
+    <p>Given a goal, it decides its own next steps, uses tools, sees what happened, and adjusts.
+    It drives.</p>
+  </div>
+</div>
+
+<p class="sidenote">Notice that "agentic workflow" is not a fifth rung. It sits <em>between</em> 3 and 4,
+and it is where most useful work actually gets done. Unit 7 returns to this.</p>
+
+<p>The step from rung 3 to rung 4 is the one that matters, and Anthropic draws the line precisely.
+There are two kinds of system that both get called "agentic":</p>
+
+<blockquote>
+  <p><strong>Workflows</strong> are systems where LLMs and tools are orchestrated through predefined
+  code paths. <strong>Agents</strong> are systems where LLMs dynamically direct their own processes
+  and tool usage, maintaining control over how they accomplish tasks.</p>
+  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective AI Agents</a></cite>
+</blockquote>
+
+<p>The difference is <span class="term">who decides the next step</span>. In a workflow, a programmer
+decided in advance. In an agent, the model decides in the moment.</p>
+
+<div class="callout insight">
+  <span class="label">The thing worth remembering</span>
+  <p>Neither is better. Anthropic's own advice is to prefer the simpler one: <em>"consider adding
+  complexity only when it demonstrably improves outcomes."</em> A fixed six-step process that works is
+  worth more than a clever agent that surprises you. Your team will be tempted to reach for the most
+  autonomous option. Push back.</p>
+</div>
+
+<h2>1.2 The six things an agent does</h2>
+
+<p>Strip away the vocabulary and every agent is doing the same loop. You already do this loop
+yourself, dozens of times a day.</p>
+
+<div class="flow">
+  <span class="node">Goal</span><span class="arr">→</span>
+  <span class="node">Context</span><span class="arr">→</span>
+  <span class="node">Reasoning</span><span class="arr">→</span>
+  <span class="node">Decision</span><span class="arr">→</span>
+  <span class="node hi">Action</span><span class="arr">→</span>
+  <span class="node">Feedback</span><span class="arr">↺</span>
+</div>
+
+<p>Take a real one. A Senior SQA is told <em>"regression-test the checkout change before Friday."</em></p>
+
+<ul>
+  <li><strong>Goal</strong> — ship a tested checkout change by Friday.</li>
+  <li><strong>Context</strong> — the ticket, the existing test suite, what broke last time.</li>
+  <li><strong>Reasoning</strong> — payment paths are the risk; the shipping module is untouched.</li>
+  <li><strong>Decision</strong> — run the payment regression pack first.</li>
+  <li><strong>Action</strong> — actually open the tool and run it.</li>
+  <li><strong>Feedback</strong> — three failures appear, two are environment noise. Adjust and go again.</li>
+</ul>
+
+<p>A chatbot can do the middle four. It cannot do <strong>Action</strong>, and because it cannot act,
+it never gets real <strong>Feedback</strong> — only your description of what happened. That is the
+entire difference, and it is why agents feel qualitatively different to use.</p>
+
+<div class="callout warning">
+  <span class="label">Where this bites</span>
+  <p>Because an agent acts, its mistakes are no longer just wrong text on a screen. They are edited
+  files, sent messages, changed records. Unit 4 covers permissions and Unit 8 covers human approval.
+  Do not let anyone on your team skip those two.</p>
+</div>
+
+<h2>1.3 So what is an Agent Skill?</h2>
+
+<p>Here is the definition this whole course hangs on:</p>
+
+<div class="callout insight">
+  <span class="label">Definition</span>
+  <p>An <span class="term">Agent Skill</span> is a reusable package of instructions that teaches an
+  agent how <em>your organisation</em> performs a specific kind of work — loaded automatically, only
+  when it is relevant.</p>
+</div>
+
+<p>Anthropic's framing is the most useful one I have found for a mixed audience:</p>
+
+<blockquote>
+  <p>Building a skill for an agent is like putting together an onboarding guide for a new hire.</p>
+  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">Equipping agents for the real world with Agent Skills</a></cite>
+</blockquote>
+
+<p>That analogy does a lot of work. A new BA joining your team is already smart. You do not teach them
+what a requirement is. You teach them <em>your</em> template, <em>your</em> definition of done, the
+client who always forgets to mention compliance, and the three questions you must ask before writing
+a single user story. That — and only that — is what belongs in a Skill.</p>
+
+<p class="sidenote">This is the single most common beginner mistake, and it appears in Unit 5 again
+with teeth: people write Skills that explain things the model already knows. It wastes the budget and
+makes the Skill worse, not better.</p>
+
+<h3>What it actually looks like</h3>
+
+<p>Concretely — and this is deliberately unglamorous — a Skill is a folder with a Markdown file in it.</p>
+
+<span class="filename">requirement-analysis/SKILL.md</span>
+<pre class="frontmatter"><code>---
+name: analyzing-requirements
+description: Analyzes a business requirement for gaps, ambiguity and missing
+  acceptance criteria using the team's standard checklist. Use when the user
+  shares a requirement, BRD, or feature request and wants it reviewed.
+---
+
+# Analyzing requirements
+
+## Process
+1. Classify the requirement: functional, non-functional, or business rule.
+2. Check it against the ambiguity checklist below.
+3. List every gap as a question addressed to the requester.
+
+## Ambiguity checklist
+- Who is the actor? (never accept "the user")
+- What happens on failure?
+- Is there a compliance or audit implication?
+</code></pre>
+
+<p>That is a complete, working Skill. Two required fields at the top, plain instructions below. There
+is no code in it, and nothing in it requires you to be a developer.</p>
+
+<div class="callout spec">
+  <span class="label">Spec detail</span>
+  <p>Only <code>name</code> and <code>description</code> are required. <code>name</code> is capped at
+  64 characters, lowercase letters, numbers and hyphens only. <code>description</code> is capped at
+  1,024 characters. Full rules live in the
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy reference</a>.</p>
+</div>
+
+<h2>1.4 The distinction that unblocks everything</h2>
+
+<p>Four words get used interchangeably by people who should know better. Getting them straight is the
+tangible win of this unit.</p>
+
+<div class="table-scroll">
+<table>
+  <caption>The four things, and the question each one answers</caption>
+  <thead>
+    <tr><th>Concept</th><th>Answers the question</th><th>Lifespan</th><th>From your world</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Prompt</strong></td>
+      <td>What do I want <em>right now</em>?</td>
+      <td>One conversation</td>
+      <td>"Summarise this meeting transcript."</td>
+    </tr>
+    <tr>
+      <td><strong>Tool</strong></td>
+      <td>What can the agent <em>reach</em>?</td>
+      <td>Permanent capability</td>
+      <td>Read Jira. Search the repo. Send an email.</td>
+    </tr>
+    <tr>
+      <td><strong>Skill</strong></td>
+      <td>How do <em>we</em> do this kind of work?</td>
+      <td>Reused indefinitely</td>
+      <td>"Our way of writing acceptance criteria."</td>
+    </tr>
+    <tr>
+      <td><strong>Workflow</strong></td>
+      <td>In what <em>order</em> do the steps run?</td>
+      <td>Defined in advance</td>
+      <td>Requirement → story → criteria → test cases.</td>
+    </tr>
+    <tr>
+      <td><strong>Agent</strong></td>
+      <td>Who is <em>deciding</em>?</td>
+      <td>Runs the loop</td>
+      <td>Picks the Skill, calls the tool, checks the result.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The compressed version, worth memorising: <strong>a tool is access, a Skill is method, a prompt is
+a request, a workflow is order, an agent is judgement.</strong></p>
+
+<div class="role-strip">
+  <div class="role-head">The same distinction, in six jobs</div>
+  <div class="role-row"><div class="who">BA</div><div class="what"><em>Tool:</em> read Confluence. <em>Skill:</em> our requirement gap-analysis method. <em>Prompt:</em> "check this BRD."</div></div>
+  <div class="role-row"><div class="who">SQA</div><div class="what"><em>Tool:</em> read the test management system. <em>Skill:</em> how we derive test scenarios from criteria. <em>Prompt:</em> "cover this story."</div></div>
+  <div class="role-row"><div class="who">UX</div><div class="what"><em>Tool:</em> read the research repository. <em>Skill:</em> our heuristic review rubric. <em>Prompt:</em> "critique this screen."</div></div>
+  <div class="role-row"><div class="who">Dev</div><div class="what"><em>Tool:</em> read the codebase. <em>Skill:</em> our code review standards. <em>Prompt:</em> "review this pull request."</div></div>
+  <div class="role-row"><div class="who">PM</div><div class="what"><em>Tool:</em> read the project plan. <em>Skill:</em> how we write a status report. <em>Prompt:</em> "draft this week's update."</div></div>
+  <div class="role-row"><div class="who">BD</div><div class="what"><em>Tool:</em> read the CRM. <em>Skill:</em> our RFP qualification method. <em>Prompt:</em> "should we bid on this?"</div></div>
+</div>
+
+<h2>Check yourself</h2>
+
+<p>Answer before you scroll back. Getting one wrong here is more useful than getting it right by
+looking it up — that is what makes it stick.</p>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>You paste a requirement into Claude and ask it to write test cases. It replies with test cases. What just happened?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="It answered a one-off request. Nothing was reused, nothing was packaged, nothing acted on the world. If you find yourself typing the same instructions a third time, that is the signal to turn it into a Skill.">A prompt — one instruction, answered once.</button>
+      <button class="opt" data-fb="A Skill is packaged and stored on disk, and loads automatically when relevant. Typing instructions into a chat window does not create one, however good the instructions are.">A skill — packaged guidance, reused often.</button>
+      <button class="opt" data-fb="Nothing was decided or executed by the model beyond producing text. No tool was called, no result was observed, no course was adjusted.">An agent — self-directed work, many steps.</button>
+      <button class="opt" data-fb="A tool is a capability to reach outside the conversation — read a file, call an API. Generating text is not a tool call.">A tool — external action, invoked directly.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>Your release process is six fixed steps. Software calls the model at each step, always in the same order. Anthropic's vocabulary calls this…</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Predefined code paths make it a workflow. This is a compliment, not a criticism — workflows are more predictable, cheaper and easier to debug than agents.">A workflow, because the path is fixed beforehand.</button>
+      <button class="opt" data-fb="Calling a model at each step does not make it an agent. The test is whether the model chooses the sequence — here a programmer already did.">An agent, because the model runs at each step.</button>
+      <button class="opt" data-fb="Tool use is not the dividing line. Workflows use tools constantly. Dynamic control over the process is the line.">An agent, because tools get used throughout it.</button>
+      <button class="opt" data-fb="Human approval is orthogonal — agents often need it too. The order being fixed in advance is what settles this.">A workflow, because a human approves each step.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>Reading a Jira ticket, versus knowing how your team analyses a requirement. Which sentence is right?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Access versus method. Reading Jira is reach; the analysis method is know-how. A Skill without tools can still think but cannot see; tools without a Skill can see but have no standards.">A tool provides access; a Skill provides method.</button>
+      <button class="opt" data-fb="Reversed. The Skill holds the method — your checklist, your standards. The tool is what lets the agent reach Jira at all.">A Skill provides access; a tool provides method.</button>
+      <button class="opt" data-fb="They are genuinely different things, not naming preferences. You can add a tool without changing behaviour, and change a Skill without touching tools.">Both are tools; the difference is only naming.</button>
+      <button class="opt" data-fb="Complexity is not the axis. A one-line Skill is still a Skill; an elaborate integration is still a tool.">Both are Skills; one is simply more complex.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">4</span>In a <code>SKILL.md</code> file, the <code>description</code> field mainly exists so that…</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="It is the trigger. Claude reads every installed Skill's description at startup and matches your request against it. A vague description means the Skill never fires — the most common reason a Skill 'does not work'. Unit 5 drills this.">Claude knows when this Skill should be used.</button>
+      <button class="opt" data-fb="Nothing about models or versions lives there. Skills are model-agnostic — though the best-practice advice is to test yours on each model you plan to use.">Claude knows which model version to run on.</button>
+      <button class="opt" data-fb="It does help humans, but that is a side effect. Its job is machine-side selection from among possibly a hundred installed Skills.">Humans know what the author of it intended.</button>
+      <button class="opt" data-fb="Ownership is not tracked in the file. That is a governance question your team solves elsewhere — folders, repositories, review.">Humans know which colleague owns this Skill.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Do this before Unit 2</h2>
+
+<p>This is the activity from your outline, and it feeds directly into your Unit 10 capstone. Do not
+skip it — everything later in the course gets easier if you have real candidates in hand.</p>
+
+<p><strong>List five tasks you personally repeat.</strong> The test for a good candidate is not "is it
+annoying" but: <em>would I have to explain how we do it to a new hire?</em> If yes, that explanation
+is a Skill waiting to be written.</p>
+
+<div class="drill" data-drill>
+  <p style="font-family:var(--sans);font-size:.85rem;margin-bottom:.6rem">
+    Write five, numbered. For at least one of them, say how often you do it, what you start from, and
+    what you produce.</p>
+  <textarea placeholder="1. Reviewing incoming requirements for gaps — weekly, start from a BRD in Confluence, produce a list of questions for the client.&#10;2. &#10;3. &#10;4. &#10;5. "></textarea>
+  <button class="btn" data-check>Check the shape of my answer</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Five items listed", "re": "(^|\\n)\\s*5\\s*[\\).:-]"},
+    {"label": "At least one says how often you do it", "re": "weekly|daily|monthly|every|each|per sprint|per week|sprint|quarterly|constantly|all the time"},
+    {"label": "At least one names what you start from", "re": "requirement|ticket|brd|document|spec|email|brief|figma|jira|transcript|report|data|feedback|rfp|backlog|design|log"},
+    {"label": "At least one names what you produce", "re": "test case|user story|stories|summary|report|checklist|acceptance|persona|proposal|plan|review|criteria|questions|estimate|matrix|journey"}
+  ]
+  </script>
+</div>
+
+<div class="source">
+  <span class="label">Read this before Unit 2</span>
+  <p><a href="https://www.anthropic.com/engineering/building-effective-agents">Building Effective AI Agents</a> — Anthropic Engineering. Read the opening sections up to and including "Workflow: Prompt chaining". Roughly 10 minutes.</p>
+  <p>This is the highest-trust source that exists on the workflow-versus-agent distinction, and it is
+  written for a general technical audience rather than researchers. Everything in Unit 2 and Unit 7
+  builds on it.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0002-glossary.html">Glossary</a> ·
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy</a> ·
+  <a href="0002-how-agents-think.html">Unit 2 — How agents think and act</a>
+</p>
+
+<div class="ask">
+  <strong>Stuck on anything here?</strong> Ask me. I am your teacher for this course — if the
+  workflow/agent line still feels blurry, or you cannot tell whether one of your five tasks is really
+  a Skill candidate, say so and we will work through your actual examples rather than mine.
+</div>
+
+<nav class="lesson-nav">
+  <a href="../index.html">← Course index</a>
+  <span class="spacer"></span>
+  <a href="0002-how-agents-think.html">Unit 2 — How agents think and act →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
