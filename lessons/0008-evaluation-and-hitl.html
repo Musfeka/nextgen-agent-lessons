@@ -1,1 +1,288 @@
-<html><body><h1>Lesson 8: Evaluation and HITL</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 8 — Evaluation, Validation and Human-in-the-Loop</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<header class="masthead">
+  <p class="eyebrow">Agent Skills · Unit 8 of 10</p>
+  <h1>Evaluation, Validation and Human-in-the-Loop</h1>
+  <p class="question">How do we know the agent actually did the job correctly?</p>
+  <div class="meta">
+    <span><strong>Time</strong> 16 minutes</span>
+    <span><strong>You will be able to</strong> diagnose why a Skill failed, and place the human gate correctly</span>
+    <span><strong>Prerequisites</strong> <a href="0007-skill-composition.html">Unit 7</a></span>
+  </div>
+</header>
+
+<p class="lede">This is the unit that makes the rest professionally defensible. Any team can generate
+output. The teams that keep using agents after month three are the ones who built a way to tell good
+output from confident output.</p>
+
+<div class="callout insight">
+  <span class="label">The operating principle for your whole team</span>
+  <p><strong>AI proposes. Human validates. The system improves.</strong></p>
+  <p>Not "give the AI instructions and trust the result." Every rollout that skips the middle term
+  ends the same way: one bad output reaches a client, and the organisation stops trusting the
+  technology instead of fixing the loop.</p>
+</div>
+
+<h2>8.1 Why agent outputs fail</h2>
+
+<p>Seven causes. The diagnostic value is that <strong>each has a different fix</strong> — which is
+why "the AI got it wrong" is a useless bug report.</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Cause</th><th>Looks like</th><th>Fix lives in</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Wrong context</strong></td><td>Confidently answers about the wrong version, project or client.</td><td>What you put in the window (Unit 3)</td></tr>
+    <tr><td><strong>Missing information</strong></td><td>Plausible invention where a fact should be.</td><td>Inputs, and failure handling</td></tr>
+    <tr><td><strong>Incorrect reasoning</strong></td><td>Right facts, wrong conclusion.</td><td>Rules and decision logic in the Skill</td></tr>
+    <tr><td><strong>Hallucination</strong></td><td>Specific, fluent, entirely fabricated detail.</td><td>Validation step against a source</td></tr>
+    <tr><td><strong>Wrong tool</strong></td><td>Answers from stale data; queries the wrong system.</td><td>Tool set and descriptions (Unit 4)</td></tr>
+    <tr><td><strong>Wrong interpretation</strong></td><td>Technically responsive, not what you meant.</td><td>Goal and output shape</td></tr>
+    <tr><td><strong>Ambiguous requirement</strong></td><td>A defensible reading you did not intend.</td><td>Not the agent's fault — fix the input</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warning">
+  <span class="label">The uncomfortable one</span>
+  <p>In our experience the last row is the most common in BA and SQA work, and the hardest to accept.
+  If the agent produced a defensible reading of an ambiguous requirement, <strong>it found a real
+  defect in your requirement</strong>. That is a win reported as a failure.</p>
+</div>
+
+<h2>8.2 Six dimensions of Skill evaluation</h2>
+
+<p>"Is it good?" is unanswerable. Split it:</p>
+
+<div class="card-grid">
+  <div class="card"><h5>Accuracy</h5><p>Is what it says true? Check against the source, not against plausibility.</p></div>
+  <div class="card"><h5>Completeness</h5><p>Did it cover everything in scope? Absences are invisible — look for them deliberately.</p></div>
+  <div class="card"><h5>Consistency</h5><p>Same input, same shape of answer? Run it three times before believing once.</p></div>
+  <div class="card"><h5>Relevance</h5><p>Did it answer the actual question, or an adjacent easier one?</p></div>
+  <div class="card"><h5>Compliance</h5><p>Does it obey your standards, template, regulatory constraints?</p></div>
+  <div class="card"><h5>Explainability</h5><p>Can it say <em>why</em>? An answer you cannot interrogate cannot be signed off.</p></div>
+</div>
+
+<p class="sidenote">Consistency is the one teams skip and then get burned by. A Skill that is excellent
+twice and wrong the third time is worse than one that is mediocre every time, because it teaches
+people to stop checking.</p>
+
+<h2>8.3 Deterministic checks versus judgement checks</h2>
+
+<p>Some of these can be checked by a rule. Some need reasoning. Knowing which is which is what makes
+evaluation affordable.</p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Deterministic — cheap, reliable, do these first</h5>
+    <ul style="margin-bottom:0">
+      <li>Every acceptance criterion has ≥1 test case</li>
+      <li>The output table has the required columns</li>
+      <li>No field is left as a placeholder</li>
+      <li>The word count is within bounds</li>
+      <li>Every claim carries a source reference</li>
+    </ul>
+  </div>
+  <div class="yes">
+    <h5>Judgement — expensive, necessary</h5>
+    <ul style="margin-bottom:0">
+      <li>Is this test scenario actually meaningful?</li>
+      <li>Is the risk assessment reasonable?</li>
+      <li>Does this critique reflect real usability harm?</li>
+      <li>Is this the right interpretation of intent?</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout insight">
+  <span class="label">The move that upgrades a Skill fastest</span>
+  <p>Find one judgement check and convert it into a deterministic one. "Is the coverage good?" is
+  judgement. <em>"Every acceptance criterion appears in at least one row of the output table"</em> is
+  a rule — and it can be written into the Skill as a self-check step the agent performs before
+  finishing.</p>
+  <p>This is the feedback-loop pattern from Unit 6, now doing evaluation work. It is the single most
+  valuable thing a non-technical author can add to a Skill.</p>
+</div>
+
+<h2>8.4 Where the human goes</h2>
+
+<p>Four different interventions, routinely conflated. They have different costs and belong in
+different places.</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Intervention</th><th>Question</th><th>Put it where</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Review</strong></td><td>Is this right?</td><td>Everywhere, initially. Relax as trust is earned.</td></tr>
+    <tr><td><strong>Approve</strong></td><td>May this proceed?</td><td>Before any <em>write</em> action, and before anything leaves the building.</td></tr>
+    <tr><td><strong>Override</strong></td><td>I disagree — do it my way.</td><td>Available always. If it is being used constantly, the Skill is wrong.</td></tr>
+    <tr><td><strong>Correct</strong></td><td>Here is what it should have been.</td><td>Captured and fed back into the Skill. This is where improvement comes from.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Placing the gate</h3>
+
+<p>Three rules that will serve your team well:</p>
+
+<ol class="steps">
+  <li><strong>Gate on irreversibility, not importance.</strong> Anything that cannot be undone — sent,
+  published, committed, deleted — gets a human. A draft nobody sees does not.</li>
+  <li><strong>Gate on the boundary of your control.</strong> The moment output leaves your team, a
+  named person owns it.</li>
+  <li><strong>Gate early rather than late.</strong> Approving scope before 60 test cases are generated
+  costs a minute. Reviewing 60 cases costs an afternoon — so nobody does it properly.</li>
+</ol>
+
+<p>Rule 3 is the one people get wrong. Notice that step 7 of the Unit 2 test plan put the human at
+scope approval, not at case review. That was deliberate.</p>
+
+<h2>8.5 The improvement loop</h2>
+
+<div class="flow">
+  <span class="node">Execute</span><span class="arr">→</span>
+  <span class="node">Evaluate</span><span class="arr">→</span>
+  <span class="node hi">Feedback</span><span class="arr">→</span>
+  <span class="node">Retry</span><span class="arr">→</span>
+  <span class="node">Improve the Skill</span><span class="arr">↺</span>
+</div>
+
+<p>The highlighted step is where teams break the loop. People notice a bad output, fix it by hand, and
+move on. The correction never reaches the Skill, so it recurs forever.</p>
+
+<p>Make it cheap and it will happen: keep a running note per Skill — <em>date, what it got wrong, what
+it should have done.</em> When there are three entries, revise. That is the Claude A / Claude B loop
+from Unit 6, with your observations as the input.</p>
+
+<h2>Activity: diagnose a failure</h2>
+
+<p>A BA installs a requirement-analysis Skill. Here is the input and the output.</p>
+
+<pre><code>REQUIREMENT (from the client's BRD):
+"The system should notify relevant users when an order status changes."
+
+SKILL OUTPUT:
+Analysis complete. This is a functional requirement.
+Actor: end users.
+Trigger: order status change.
+Expected outcome: notification sent via email within 5 minutes.
+Priority: Medium.
+No gaps identified. Ready for user story creation.</code></pre>
+
+<p>Read it again before answering. It looks entirely professional, which is the point.</p>
+
+<div class="quiz" data-quiz>
+  <div class="quiz-head"><span>Diagnosis</span><span class="score"></span></div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">1</span>"Notification sent via email within 5 minutes" appears in the output. What is that?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Hallucination. The requirement says nothing about email or five minutes. It is specific, fluent and fabricated — the most dangerous shape a failure takes, because it reads like diligence.">Fabricated detail that the requirement never stated.</button>
+      <button class="opt" data-fb="A reasonable inference would be flagged as an inference. This is presented as a finding, with no signal that it was invented.">A reasonable inference clearly marked as such.</button>
+      <button class="opt" data-fb="Nothing in the input supplies a channel or a timing. There is no source for it to have summarised.">A correct summary of what the requirement stated.</button>
+      <button class="opt" data-fb="Tool choice is not implicated — no tool was needed to read a one-line requirement.">Evidence that the wrong tool was used to read it.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">2</span>"No gaps identified" is the most serious line in the output. Why?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="The requirement is riddled with gaps — 'relevant users' is undefined, no channel, no timing, no failure behaviour, 'should' is not a commitment. Declaring none actively removes the human's reason to look.">It certifies as clean a requirement full of gaps.</button>
+      <button class="opt" data-fb="Brevity is not the issue. A one-line conclusion would be fine if it were true.">It is far too brief to count as real analysis.</button>
+      <button class="opt" data-fb="Format is a minor concern next to a false assurance that shuts down review.">It fails to follow the team's output template.</button>
+      <button class="opt" data-fb="Gap analysis is exactly this Skill's job. The problem is that it was done wrongly, not that it was out of scope.">It is not this particular Skill's job to identify them.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">3</span>Which single change to the Skill would prevent most of this?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Explicit failure handling. 'If the requirement does not state the channel, timing, actor or failure behaviour, list each as a gap. Never infer one.' That one paragraph removes the hallucination and the false all-clear together.">Add failure handling forbidding inferred values.</button>
+      <button class="opt" data-fb="More context would not help — the requirement is short and was fully visible. The Skill's rules are what is missing.">Provide much more surrounding project context.</button>
+      <button class="opt" data-fb="Length is not the lever. A longer Skill with the same missing rule fails identically.">Expand the Skill body with more instructions.</button>
+      <button class="opt" data-fb="Trying a different model does not fix a Skill that never forbade invention. The gap is in the instructions.">Switch to a more capable model for this task.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">4</span>Where should the human gate sit for this Skill?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Before the gap list goes to the client — the boundary of your control, and the last reversible moment. Gating after user stories are written means reviewing far more material, badly.">Before the gap questions reach the client.</button>
+      <button class="opt" data-fb="Too late. By then the fabricated timing has propagated into stories, criteria and test cases, and reviewing it costs an afternoon.">After user stories and criteria are generated.</button>
+      <button class="opt" data-fb="Gating every intermediate thought is how teams abandon a process in week two. Gate on irreversibility, not on every step.">At every single intermediate step it performs.</button>
+      <button class="opt" data-fb="With fabrication this plausible, no gate means the invention reaches the client as an agreed requirement.">Nowhere, provided the Skill is well written.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+</div>
+
+<h2>Write the evaluation for your own Skill</h2>
+
+<p>Three scenarios, with expected behaviour stated. This is the artefact from Unit 6, step 2 — write
+it now for the Skill you built.</p>
+
+<div class="drill" data-drill>
+  <textarea placeholder="EVAL 1 — typical case&#10;Input: a well-formed user story with 4 acceptance criteria&#10;Expected: one row per criterion; error paths covered; no invented values&#10;&#10;EVAL 2 — degraded input&#10;Input: a story whose criteria omit failure behaviour&#10;Expected: flags it as untestable; must NOT invent a failure behaviour&#10;&#10;EVAL 3 — out of scope&#10;Input: a non-functional performance requirement with no threshold&#10;Expected: declines to generate a scenario; asks for the threshold&#10;&#10;Deterministic checks: every criterion ID appears in the output table"></textarea>
+  <button class="btn" data-check>Check my evaluation set</button>
+  <div class="drill-result"></div>
+  <script type="application/json" data-rubric>
+  [
+    {"label": "Three scenarios present", "re": "(eval|scenario|case|test)\\s*3|3[\\).:-]"},
+    {"label": "Each states an input", "re": "input"},
+    {"label": "Each states expected behaviour", "re": "expect|should|must"},
+    {"label": "One scenario tests degraded or missing input", "re": "missing|absent|incomplete|degraded|ambiguous|vague|omit|without|no threshold|unclear|empty"},
+    {"label": "One scenario tests something it should REFUSE to do", "re": "not |never|refus|decline|must not|should not|reject|stop|ask instead|flag"},
+    {"label": "At least one deterministic check stated", "re": "every|each .* appears|all .* covered|count|column|contains|no placeholder|at least one|traceab|matches"}
+  ]
+  </script>
+</div>
+
+<div class="callout insight">
+  <span class="label">The one everyone forgets</span>
+  <p>The third rubric item: <strong>a scenario testing what the Skill should refuse to do.</strong>
+  Almost nobody writes one. It is the scenario that catches the failure you just diagnosed above, and
+  it is the difference between a Skill that is helpful and a Skill that is trustworthy.</p>
+</div>
+
+<div class="source">
+  <span class="label">Primary source for this unit</span>
+  <p><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">Skill authoring best practices</a> — the "Evaluation and iteration" and "Implement feedback loops" sections.</p>
+  <p>Note honestly when you teach this: there is <strong>no built-in evaluation runner</strong>. The
+  documentation says so directly. What you are building is a disciplined manual practice, and saying
+  that plainly will earn you more credibility with your engineers than implying a tool exists.</p>
+</div>
+
+<p class="seealso"><strong>See also:</strong>
+  <a href="../reference/0004-failure-modes.html">Agent failure modes — the diagnostic table</a> ·
+  <a href="../reference/0005-skill-design-canvas.html">Skill design canvas</a> ·
+  <a href="0010-build-your-own.html">Unit 10 — the capstone</a>
+</p>
+
+<div class="ask">
+  <strong>Send me a real bad output.</strong> Diagnosis is a skill that only develops on real
+  material. Paste something your Skill got wrong, with the input, and we will work out which of the
+  seven causes it was — the fix follows almost automatically once that is settled.
+</div>
+
+<nav class="lesson-nav">
+  <a href="0007-skill-composition.html">← Unit 7</a>
+  <span class="spacer"></span>
+  <a href="0009-skills-by-role.html">Unit 9 — Agent Skills by profession →</a>
+</nav>
+
+</main>
+<script src="../assets/lesson.js"></script>
+</body>
+</html>
