@@ -3,169 +3,301 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unit 4 — Tools, Actions and Capabilities</title>
+<title>Unit 5 — What Exactly Is an Agent Skill?</title>
 <link rel="stylesheet" href="../assets/course.css">
 </head>
 <body>
 <main class="page">
 
 <header class="masthead">
-  <p class="eyebrow">Agent Skills · Unit 4 of 10</p>
-  <h1>Tools, Actions and Capabilities</h1>
-  <p class="question">How does an agent actually <em>do</em> things — and what stops it doing the wrong ones?</p>
+  <p class="eyebrow">Agent Skills · Unit 5 of 10</p>
+  <h1>What Exactly Is an Agent Skill?</h1>
+  <p class="question">From a one-off instruction to a capability your whole team can rely on.</p>
   <div class="meta">
-    <span><strong>Time</strong> 13 minutes</span>
-    <span><strong>You will be able to</strong> map the tools a task needs and classify each one's risk</span>
-    <span><strong>Prerequisites</strong> <a href="0003-context-engineering.html">Unit 3</a></span>
+    <span><strong>Time</strong> 18 minutes</span>
+    <span><strong>You will be able to</strong> read a real SKILL.md and judge whether it is any good</span>
+    <span><strong>Prerequisites</strong> <a href="0004-tools-and-actions.html">Unit 4</a></span>
   </div>
 </header>
 
-<p class="lede">An agent that can only generate text is a very good writer. An agent that can act is a
-colleague — and a liability. This unit is the shortest path to using the second kind safely.</p>
+<p class="lede">Everything so far has been preparation. This is the unit where the abstraction becomes
+a file you can open, and where the four ideas you have collected — context budget, right altitude,
+ground truth, tool-versus-method — turn out to have been about Skills the whole time.</p>
 
-<h2>4.1 What a tool is</h2>
+<h2>5.1 The mechanism: progressive disclosure</h2>
 
-<p>A <span class="term">tool</span> is a defined capability the agent can invoke to reach beyond the
-conversation: read a file, query a database, search the web, run a script, send a message, open a
-ticket.</p>
+<p>Before the anatomy, understand the trick that makes Skills work. It is the direct answer to Unit
+3's problem: context is finite, but your organisation's knowledge is not.</p>
 
-<p>Two things about tools surprise people:</p>
-
-<ul>
-  <li><strong>The agent chooses.</strong> You do not call the tool. You make it available and describe
-  it; the model decides whether, when, and with what arguments.</li>
-  <li><strong>The description is the interface.</strong> A tool the model does not understand is a
-  tool it will use wrongly or ignore. Tool documentation is not documentation — it is programming.</li>
-</ul>
-
-<blockquote>
-  <p>Effective tools are self-contained, robust to error, and extremely clear with respect to their
-  intended use.</p>
-  <cite>Anthropic, <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a></cite>
-</blockquote>
-
-<h2>4.2 Tool versus Skill — the distinction that keeps mattering</h2>
-
-<p>You met this in Unit 1. Here it is sharpened, because this is where people design badly.</p>
-
-<div class="compare">
-  <div class="yes">
-    <h5>Skill = method</h5>
-    <p><em>How we analyse a software requirement.</em></p>
-    <p>Knowledge, standards, sequence, judgement. Portable. Survives a change of systems.</p>
-  </div>
-  <div class="yes">
-    <h5>Tool = reach</h5>
-    <p><em>Read Jira. Read GitHub. Query the database.</em></p>
-    <p>Access to a system. Says nothing about what good work looks like.</p>
-  </div>
-</div>
-
-<p>Neither is sufficient. A Skill with no tools can reason about material you paste in, but cannot go
-and get it. Tools with no Skill can fetch everything and still produce work that fails your review.</p>
-
-<div class="callout insight">
-  <span class="label">A test you can apply in seconds</span>
-  <p>If your company switched from Jira to Azure DevOps tomorrow — would this thing need rewriting?
-  If <strong>yes</strong>, it is a tool concern. If <strong>no</strong>, it is a Skill concern. Keep
-  them in separate boxes and both stay maintainable.</p>
-</div>
-
-<h2>4.3 How the agent chooses a tool</h2>
-
-<p>Three decisions, every time: <em>which</em> tool, <em>when</em>, and <em>with what arguments</em>.
-The model makes them by reading the available tool descriptions and matching them against its current
-goal — exactly the way it matches a Skill's <code>description</code>.</p>
-
-<p>Which means the failure mode is identical, too:</p>
-
-<div class="callout warning">
-  <span class="label">Bloated tool sets</span>
-  <p>Anthropic is blunt about this: a common failure is <em>"bloated tool sets that cover too much
-  functionality or lead to ambiguous decision points about which tool to use."</em></p>
-  <p>And the diagnostic test: <strong>if your engineers cannot definitively say which tool is correct
-  for a situation, neither can the agent.</strong> Ambiguity you can live with is ambiguity the model
-  cannot.</p>
-</div>
-
-<p class="sidenote">This is the strongest argument against "connect everything and see what happens."
-Twelve overlapping integrations do not make an agent twelve times more capable. They make its tool
-choice unreliable.</p>
-
-<h2>4.4 Tool chains</h2>
-
-<p>Real work is a sequence. Here is the SQA example from your outline, with the important part marked:</p>
-
-<div class="flow">
-  <span class="node">Read requirement</span><span class="arr">→</span>
-  <span class="node">Search existing tests</span><span class="arr">→</span>
-  <span class="node hi">Analyse gap</span><span class="arr">→</span>
-  <span class="node">Create test cases</span>
-</div>
-
-<p>Three of those four steps are tool calls. The highlighted one is not — it is judgement, and no
-integration will supply it. <strong>That step is where your Skill lives.</strong></p>
-
-<p>Generalise this and you have a design habit worth teaching your whole team: <em>draw the chain,
-then circle the steps that are not tool calls.</em> Those circles are your Skill backlog.</p>
-
-<h2>4.5 Tool safety</h2>
-
-<p>The moment an agent can act, four questions stop being theoretical.</p>
+<p>Skills solve this by loading in three stages.</p>
 
 <div class="table-scroll">
 <table>
-  <caption>Classify every tool before you enable it</caption>
-  <thead><tr><th>Question</th><th>What you are deciding</th><th>Get it wrong and…</th></tr></thead>
+  <caption>The three levels of a Skill — from the Agent Skills documentation</caption>
+  <thead><tr><th>Level</th><th>What</th><th>When loaded</th><th>Cost</th></tr></thead>
   <tbody>
-    <tr><td><strong>Permission</strong></td><td>What may it touch at all?</td><td>It reaches data it should never have seen.</td></tr>
-    <tr><td><strong>Read or write</strong></td><td>Can it change anything?</td><td>A wrong answer becomes a wrong record.</td></tr>
-    <tr><td><strong>Validation</strong></td><td>Is the action checked before it lands?</td><td>Errors are found by customers, not by you.</td></tr>
-    <tr><td><strong>Approval</strong></td><td>Does a human confirm first?</td><td>Nobody notices until it is 200 rows deep.</td></tr>
+    <tr>
+      <td><strong>1 · Metadata</strong></td>
+      <td><code>name</code> and <code>description</code></td>
+      <td>Always, at startup</td>
+      <td>~100 tokens per Skill</td>
+    </tr>
+    <tr>
+      <td><strong>2 · Instructions</strong></td>
+      <td>The body of <code>SKILL.md</code></td>
+      <td>Only when triggered</td>
+      <td>Under 5k tokens</td>
+    </tr>
+    <tr>
+      <td><strong>3 · Resources</strong></td>
+      <td>Bundled files and scripts</td>
+      <td>Only when referenced</td>
+      <td>Nothing until accessed</td>
+    </tr>
   </tbody>
 </table>
 </div>
 
-<h3>The read/write line is the one to teach hardest</h3>
+<p>Read that table twice. It has three consequences that shape every design decision you will make:</p>
 
-<p>It is the cheapest safety control you have, and it is comprehensible to non-technical staff.</p>
+<ol class="steps">
+  <li><strong>You can install a hundred Skills without penalty.</strong> Until one is triggered, it
+  costs about a hundred tokens. This is why a library of narrow Skills beats one enormous one.</li>
+  <li><strong>The <code>description</code> is the whole trigger.</strong> It is the only part the
+  model sees when deciding. A perfect Skill body with a vague description never runs.</li>
+  <li><strong>Bundled content is effectively free.</strong> Scripts are executed rather than read, so
+  only their <em>output</em> costs tokens. A Skill can carry a 300-page reference and pay nothing
+  until the day it needs page 41.</li>
+</ol>
+
+<p class="sidenote">This is what Anthropic means by Skills being <em>"effectively unbounded"</em> in
+scope while staying context-efficient. The library grows; the budget does not.</p>
+
+<h2>5.2 Anatomy — what the spec requires, and what good practice adds</h2>
+
+<div class="callout spec">
+  <span class="label">The spec is smaller than people expect</span>
+  <p>A Skill is a directory containing a <code>SKILL.md</code> file. That file must have YAML
+  frontmatter with exactly two required fields: <code>name</code> and <code>description</code>.
+  Everything else is Markdown of your choosing.</p>
+</div>
+
+<span class="filename">test-scenario-generation/SKILL.md</span>
+<pre class="frontmatter"><code>---
+name: generating-test-scenarios
+description: Derives test scenarios from acceptance criteria using the team's
+  risk-based coverage model, and flags criteria that cannot be tested as
+  written. Use when a user story, acceptance criteria or feature spec needs
+  test coverage designed.
+---
+
+# Generating test scenarios
+
+## Process
+1. Extract every acceptance criterion as a separate line.
+2. Classify each: happy path, alternate path, error path, or non-functional.
+3. Apply the coverage rule below.
+4. Flag any criterion that is untestable as written — do not invent one.
+
+## Coverage rule
+- Error paths always get a scenario. Always.
+- Happy paths get one scenario each.
+- Non-functional criteria get a scenario only if a threshold is stated.
+
+## Output
+A table: ID | Criterion | Type | Scenario | Rationale.
+One row per scenario. No prose before or after the table.
+</code></pre>
+
+<p>That is a complete, professional Skill. Note what it does <em>not</em> contain: no explanation of
+what a test scenario is, no definition of "happy path," no encouragement to be thorough. All of that
+is knowledge the model already has. Every line present is something only your team knows.</p>
+
+<h3>The fourteen questions a good Skill answers</h3>
+
+<p>Your outline lists fourteen elements. They are not spec fields — you will not find them in the
+documentation. They are a <strong>design checklist</strong>, and that is more useful: they are the
+questions to ask while drafting, answered in ordinary Markdown.</p>
+
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Element</th><th>Where it lives</th><th>Ask yourself</th></tr></thead>
+  <tbody>
+    <tr><td>Purpose</td><td><code>description</code>, first clause</td><td>What work does this do?</td></tr>
+    <tr><td>Trigger</td><td><code>description</code>, "Use when…"</td><td>How will Claude know to reach for it?</td></tr>
+    <tr><td>Role</td><td>Body, opening line</td><td>Whose standards apply?</td></tr>
+    <tr><td>Inputs</td><td>Body</td><td>What must be present for this to work?</td></tr>
+    <tr><td>Context</td><td>Body, or a bundled file</td><td>What does it need to know that only we know?</td></tr>
+    <tr><td>Instructions</td><td>Body</td><td>What is the method?</td></tr>
+    <tr><td>Rules</td><td>Body, stated as must/never</td><td>What is non-negotiable?</td></tr>
+    <tr><td>Process</td><td>Body, numbered steps</td><td>In what order?</td></tr>
+    <tr><td>Decision logic</td><td>Body, conditional section</td><td>Where does it branch, and on what?</td></tr>
+    <tr><td>Tools</td><td>Body, named explicitly</td><td>What must it be able to reach?</td></tr>
+    <tr><td>Output format</td><td>Body, as a template</td><td>What shape is the deliverable?</td></tr>
+    <tr><td>Examples</td><td>Body, or <code>examples.md</code></td><td>What does good look like?</td></tr>
+    <tr><td>Validation</td><td>Body, as a check step</td><td>How would we know it worked?</td></tr>
+    <tr><td>Failure handling</td><td>Body, explicit</td><td>What should it do when it cannot proceed?</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warning">
+  <span class="label">Do not turn this into a template with fourteen headings</span>
+  <p>The temptation is to make every Skill a form with all fourteen sections filled in. That produces
+  bloated Skills that violate the concision principle. These are <em>questions to answer</em>, and
+  many are answered in a single line or not needed at all. The example above answers nine of them in
+  twenty lines.</p>
+</div>
+
+<h2>5.3 The <code>description</code> field, in detail</h2>
+
+<p>If you take one thing from this unit, take this. Skill selection lives or dies here.</p>
 
 <div class="compare">
   <div class="yes">
-    <h5>Read — start here always</h5>
-    <p>Search the repo, read the ticket, query the report, fetch the document.</p>
-    <p>Worst case: a wasted run and a wrong answer you can discard.</p>
+    <h5>Good — what + when</h5>
+    <pre><code>description: Extract text and
+tables from PDF files, fill
+forms, merge documents. Use
+when working with PDF files
+or when the user mentions
+PDFs, forms, or document
+extraction.</code></pre>
   </div>
   <div class="no">
-    <h5>Write — earn this</h5>
-    <p>Update the ticket, send the email, commit the change, post to the client.</p>
-    <p>Worst case: something outside your control, already seen by someone else.</p>
+    <h5>Bad — no trigger, no terms</h5>
+    <pre><code>description: Helps with
+documents
+
+
+description: Processes data
+
+
+description: Does stuff
+with files</code></pre>
   </div>
 </div>
 
-<p>A sane rollout for a team new to this: <strong>read-only for everyone, writes behind explicit
-approval, destructive actions not enabled at all until someone owns them.</strong></p>
+<p>Three rules from the authoring guidance, all of which your team will break at first:</p>
 
-<h3>And a specific warning about Skills themselves</h3>
+<ul>
+  <li><strong>Always third person.</strong> "Processes Excel files and generates reports" — not "I can
+  help you…" or "You can use this to…". The description is injected into the system prompt, and
+  mixed point-of-view causes real discovery problems.</li>
+  <li><strong>Say what it does <em>and</em> when to use it.</strong> Both halves. The second half is
+  the one people omit.</li>
+  <li><strong>Include the words people actually type.</strong> If your BAs say "BRD," the word BRD
+  belongs in the description. Matching happens on this text.</li>
+</ul>
 
-<div class="callout warning">
-  <span class="label">Skills are executable trust</span>
-  <p>The documentation is explicit: <em>"Use Skills only from trusted sources."</em> A Skill can
-  direct an agent to invoke tools in ways that do not match its stated purpose. Treat installing a
-  third-party Skill exactly like installing software from the internet — read every file first,
-  including bundled scripts.</p>
-  <p>Skills that fetch content from external URLs deserve particular suspicion: fetched content can
-  itself carry instructions.</p>
+<div class="callout spec">
+  <span class="label">Hard limits</span>
+  <p><code>name</code>: max 64 characters; lowercase letters, numbers and hyphens only; no XML tags;
+  cannot contain the reserved words "anthropic" or "claude". Gerund form is recommended —
+  <code>analyzing-requirements</code> over <code>requirement-helper</code>.</p>
+  <p><code>description</code>: non-empty, max 1,024 characters, no XML tags.</p>
 </div>
 
-<div class="role-strip">
-  <div class="role-head">Tool chains in six jobs — the circled step is the Skill</div>
-  <div class="role-row"><div class="who">BA</div><div class="what">Read BRD → search related epics → <em>judge completeness</em> → draft clarifying questions.</div></div>
-  <div class="role-row"><div class="who">SQA</div><div class="what">Read story → search test repo → <em>identify coverage gap</em> → write cases.</div></div>
-  <div class="role-row"><div class="who">UX</div><div class="what">Read research notes → pull prior personas → <em>apply heuristic rubric</em> → write critique.</div></div>
-  <div class="role-row"><div class="who">Dev</div><div class="what">Read diff → fetch interface definition → <em>apply review standards</em> → comment.</div></div>
-  <div class="role-row"><div class="who">PM</div><div class="what">Read board → pull last week's report → <em>assess health and risk</em> → draft update.</div></div>
-  <div class="role-row"><div class="who">BD</div><div class="what">Read RFP → search past proposals → <em>qualify against capability</em> → recommend bid/no-bid.</div></div>
+<h2>5.4 Good Skill, bad Skill</h2>
+
+<p>The single biggest quality lever is concision, for the reason you learned in Unit 3: the context
+window is shared. Anthropic's framing is that <em>"the context window is a public good"</em> and the
+default assumption should be that <strong>Claude is already very smart</strong>.</p>
+
+<div class="compare">
+  <div class="yes">
+    <h5>Good — ~50 tokens</h5>
+    <pre><code>## Extract PDF text
+
+Use pdfplumber:
+
+import pdfplumber
+with pdfplumber.open("f.pdf") as pdf:
+    text = pdf.pages[0].extract_text()</code></pre>
+  </div>
+  <div class="no">
+    <h5>Bad — ~150 tokens</h5>
+    <pre><code>## Extract PDF text
+
+PDF (Portable Document Format)
+files are a common file format
+that contains text, images and
+other content. To extract text
+you'll need a library. There are
+many libraries available, but
+pdfplumber is recommended
+because it's easy to use…</code></pre>
+  </div>
+</div>
+
+<p>Challenge every paragraph you write with three questions from the authoring guide: <em>Does Claude
+really need this explanation? Can I assume Claude knows this? Does this paragraph justify its token
+cost?</em></p>
+
+<h3>Degrees of freedom — the other quality lever</h3>
+
+<p>Match specificity to how fragile the task is. The published analogy is a robot on a path:</p>
+
+<div class="card-grid">
+  <div class="card">
+    <span class="num">High freedom</span>
+    <h5>Open field</h5>
+    <p>Many routes work. Give direction, not steps. <em>"Analyse structure, check for edge cases,
+    suggest improvements."</em> Use for code review, critique, analysis.</p>
+  </div>
+  <div class="card">
+    <span class="num">Medium freedom</span>
+    <h5>Marked trail</h5>
+    <p>A preferred pattern exists, variation is fine. Give a template with parameters. Use for report
+    generation, structured drafting.</p>
+  </div>
+  <div class="card">
+    <span class="num">Low freedom</span>
+    <h5>Narrow bridge</h5>
+    <p>Cliffs on both sides. Give the exact command and forbid deviation. <em>"Run exactly this. Do
+    not add flags."</em> Use for migrations, releases, anything irreversible.</p>
+  </div>
+</div>
+
+<p>Most beginner Skills use low freedom everywhere, because it feels safer. It is not — it is brittle
+(Unit 3), and it wastes tokens specifying things that did not need specifying.</p>
+
+<h2>5.5 Atomic Skills and boundaries</h2>
+
+<p>Because Level 1 costs almost nothing, the economics favour <strong>many narrow Skills over one
+broad one</strong>.</p>
+
+<div class="compare">
+  <div class="no">
+    <h5>One Skill: "QA Assistant"</h5>
+    <p>Does everything related to QA. Triggers on almost any QA-adjacent request, then loads a huge
+    body of instructions of which 80% is irrelevant to the task at hand.</p>
+    <p>Impossible to test, impossible to improve without risking everything else.</p>
+  </div>
+  <div class="yes">
+    <h5>Four Skills</h5>
+    <p><code>classifying-requirements</code><br>
+       <code>analyzing-requirement-gaps</code><br>
+       <code>generating-test-cases</code><br>
+       <code>reviewing-test-cases</code></p>
+    <p>Each triggers precisely, loads only what it needs, and can be improved or retired alone.</p>
+  </div>
+</div>
+
+<p><strong>The boundary test:</strong> if you cannot write a <code>description</code> that clearly
+excludes the neighbouring Skill, your boundary is in the wrong place. Two Skills that both plausibly
+match the same request will be selected unpredictably.</p>
+
+<h3>Reusability</h3>
+
+<p>A Skill must work with <em>different inputs</em> — that is the whole point. The test: could a
+colleague use this next month, on a different project, without editing the file? If it only works on
+the document you had open when you wrote it, you have written a prompt with extra steps.</p>
+
+<div class="callout warning">
+  <span class="label">Avoid time-sensitive content</span>
+  <p>Never write "before August, do X; after August, do Y." It will be wrong and nobody will notice.
+  If you must record superseded practice, put it in a collapsed "Old patterns" section at the bottom.</p>
 </div>
 
 <h2>Check yourself</h2>
@@ -174,92 +306,99 @@ approval, destructive actions not enabled at all until someone owns them.</stron
   <div class="quiz-head"><span>Retrieval check</span><span class="score"></span></div>
 
   <div class="q" data-q>
-    <p class="stem"><span class="qn">1</span>Your team connects twelve overlapping integrations, several of which could plausibly answer the same question. What is the likely result?</p>
+    <p class="stem"><span class="qn">1</span>A Skill's body is excellent but it never seems to activate. Where do you look first?</p>
     <div class="opts">
-      <button class="opt" data-correct data-fb="Ambiguous decision points. If a human engineer cannot say definitively which tool is right, the agent cannot either — that is Anthropic's own stated test.">Tool choice becomes unreliable and inconsistent.</button>
-      <button class="opt" data-fb="Capability does not add up that way. Overlap creates ambiguity, and ambiguity degrades selection rather than improving reach.">Capability rises roughly in line with the count.</button>
-      <button class="opt" data-fb="Speed is not the primary concern here. Correct tool selection is, and it gets worse rather than slower.">Nothing changes except how quickly it responds.</button>
-      <button class="opt" data-fb="The model will not refuse. It will pick one, confidently, and possibly a different one next time.">The agent refuses to act until you remove some.</button>
+      <button class="opt" data-correct data-fb="The description. It is the only thing loaded at startup and the only thing matched against the request. An excellent body behind a vague description is invisible.">The description field, which drives selection.</button>
+      <button class="opt" data-fb="The body is only read after the Skill has already been chosen, so it cannot be responsible for the Skill not being chosen.">The body, since that holds the real instructions.</button>
+      <button class="opt" data-fb="Bundled files load later still — level 3. They cannot affect whether the Skill triggers at all.">The bundled reference files it loads on demand.</button>
+      <button class="opt" data-fb="Length limits would produce an error, not silence. And 500 lines is a performance guideline for the body, not a trigger condition.">The overall length, which has exceeded a limit.</button>
     </div>
     <div class="feedback"></div>
   </div>
 
   <div class="q" data-q>
-    <p class="stem"><span class="qn">2</span>You are asked whether "our standard for writing acceptance criteria" is a tool concern or a Skill concern. What settles it?</p>
+    <p class="stem"><span class="qn">2</span>Which of these belongs in a Skill you are writing for your BA team?</p>
     <div class="opts">
-      <button class="opt" data-correct data-fb="The migration test. Switching from Jira to Azure DevOps would not change your standard for acceptance criteria — so it is a Skill. Anything that would need rewriting is a tool concern.">Whether switching systems would require a rewrite.</button>
-      <button class="opt" data-fb="Complexity does not decide category. Simple standards are still Skills; elaborate integrations are still tools.">Whether the thing is complicated enough to matter.</button>
-      <button class="opt" data-fb="Frequency is useful for prioritising what to build, but it does not tell you which of the two categories something is.">Whether the task comes up frequently enough here.</button>
-      <button class="opt" data-fb="Who wrote it has no bearing. A developer can author a Skill; a BA can specify a tool.">Whether a developer or an analyst produced it.</button>
+      <button class="opt" data-correct data-fb="Client-specific behaviour is exactly the kind of thing nobody outside your team could know. That is the definition of high-signal context.">This client never states compliance needs.</button>
+      <button class="opt" data-fb="General knowledge the model already holds. Explaining it costs tokens and buys nothing — the 'Claude is already very smart' default.">A requirement describes what a system does.</button>
+      <button class="opt" data-fb="Definitions of standard industry terms are training knowledge, not context. Save the budget for your own vocabulary.">Functional and non-functional requirements differ.</button>
+      <button class="opt" data-fb="Generic encouragement gives no signal at all — the 'too high altitude' failure from Unit 3.">Analysis should always be thorough and careful.</button>
     </div>
     <div class="feedback"></div>
   </div>
 
   <div class="q" data-q>
-    <p class="stem"><span class="qn">3</span>A colleague downloads a Skill from a public repository and wants to install it. The correct response is…</p>
+    <p class="stem"><span class="qn">3</span>Why does a library of ten narrow Skills usually beat one broad Skill covering the same ground?</p>
     <div class="opts">
-      <button class="opt" data-correct data-fb="Read everything first — SKILL.md and every bundled script. A Skill can direct the agent to use tools in ways unrelated to its stated purpose. The docs say to treat this exactly like installing software.">Read every bundled file before it is installed.</button>
-      <button class="opt" data-fb="Popularity is not an audit. A widely-downloaded Skill with a malicious script is still a malicious script.">Check its download count, then install it happily.</button>
-      <button class="opt" data-fb="Markdown is not automatically safe — instructions direct an agent that holds real permissions, and Skills can bundle scripts too.">Install it freely, since Markdown cannot do harm.</button>
-      <button class="opt" data-fb="A blanket ban is unnecessary and wasteful. Anthropic publishes open-source Skills worth reading and reusing — audited, not avoided.">Forbid all external Skills as a standing policy.</button>
+      <button class="opt" data-correct data-fb="Progressive disclosure. Each unused Skill costs roughly 100 tokens, but a triggered broad Skill loads its whole body — most of it irrelevant. Narrow Skills also trigger more precisely and can be improved independently.">Only the relevant instructions ever get loaded.</button>
+      <button class="opt" data-fb="There is no such rule, and installing many Skills is explicitly cheap. Quantity is not the constraint.">Ten small files are required by the format rules.</button>
+      <button class="opt" data-fb="Broad Skills are not slower to read in any meaningful sense. The issue is relevance and precision of triggering.">Smaller files are read very much faster on disk.</button>
+      <button class="opt" data-fb="Both approaches can be documented. Maintainability is a real benefit, but the mechanism is selective loading.">Documentation becomes possible only when split up.</button>
+    </div>
+    <div class="feedback"></div>
+  </div>
+
+  <div class="q" data-q>
+    <p class="stem"><span class="qn">4</span>You are writing a Skill for the quarterly production release, which must run in an exact sequence. What degree of freedom is right?</p>
+    <div class="opts">
+      <button class="opt" data-correct data-fb="Low freedom — the narrow bridge with cliffs. Exact commands, explicitly forbidden deviation. Fragile, irreversible and consistency-critical tasks all point the same way.">Low — give exact steps and forbid deviation.</button>
+      <button class="opt" data-fb="High freedom suits open fields where many routes work. A release sequence is the opposite situation.">High — describe the goal and trust the judgement.</button>
+      <button class="opt" data-fb="Medium freedom fits tasks where a preferred pattern exists but variation is acceptable. Here variation is the danger.">Medium — offer a template with some parameters.</button>
+      <button class="opt" data-fb="Degree of freedom is a design choice you make deliberately, not something to leave unspecified.">None — the concept does not apply to releases.</button>
     </div>
     <div class="feedback"></div>
   </div>
 </div>
 
-<h2>Activity: map your tools, classify your risk</h2>
+<h2>Activity: turn a prompt into a Skill</h2>
 
-<p>Take one task from your Unit 1 list. Write the chain — each step, the tool it needs, and whether
-that tool <strong>reads</strong> or <strong>writes</strong>. Then circle the steps that are not tool
-calls at all.</p>
+<p>Take the rewritten instruction you produced in Unit 3 — or the prompt you type most often — and
+convert it into a real <code>SKILL.md</code>. Write the actual frontmatter.</p>
 
 <div class="drill" data-drill>
-  <textarea placeholder="Step 1: Fetch the requirement — tool: Confluence — READ&#10;Step 2: Search existing test cases — tool: TestRail — READ&#10;Step 3: Identify the coverage gap — NO TOOL, this is judgement (Skill)&#10;Step 4: Create the new cases — tool: TestRail — WRITE, needs approval"></textarea>
-  <button class="btn" data-check>Check the shape of my map</button>
+  <textarea placeholder="---&#10;name: &#10;description: &#10;---&#10;&#10;# &#10;&#10;## Process&#10;1. &#10;&#10;## Rules&#10;- &#10;&#10;## Output&#10;"></textarea>
+  <button class="btn" data-check>Check my SKILL.md</button>
   <div class="drill-result"></div>
   <script type="application/json" data-rubric>
   [
-    {"label": "At least three steps", "re": "(^|\\n)[^\\n]*3\\s*[\\).:-]|step\\s*3"},
-    {"label": "Names actual systems, not generic 'the tool'", "re": "jira|confluence|github|gitlab|testrail|azure|slack|figma|sharepoint|drive|notion|salesforce|hubspot|zephyr|xray|excel|sheets|crm|database|email|outlook"},
-    {"label": "Marks at least one step as READ", "re": "read|fetch|search|query|retriev|view|get "},
-    {"label": "Marks at least one step as WRITE", "re": "write|creat|updat|post|send|commit|save|upload|insert|modif"},
-    {"label": "Identifies at least one judgement step with no tool", "re": "no tool|judg|skill|reason|decide|analys|analyz|assess|not a tool|human"},
-    {"label": "Flags where approval is needed", "re": "approv|review|confirm|sign.?off|check with|human|gate"}
+    {"label": "Has YAML frontmatter delimiters (---)", "re": "---[\\s\\S]*---"},
+    {"label": "Has a name field", "re": "name\\s*:"},
+    {"label": "name uses lowercase-and-hyphens only", "re": "name\\s*:\\s*[a-z0-9]+(-[a-z0-9]+)+\\s*(\\n|$)"},
+    {"label": "Has a description field", "re": "description\\s*:"},
+    {"label": "description says WHEN to use it", "re": "use when|use this when|when the user|when a |when someone|triggered when|invoke when"},
+    {"label": "Description is third person (no 'I can' / 'you can use this')", "re": "^(?![\\s\\S]*description\\s*:[^\\n]*\\b(I can|I will|I help|you can use this)\\b)[\\s\\S]*$"},
+    {"label": "Body has a numbered process", "re": "(^|\\n)\\s*(1\\.|1\\))"},
+    {"label": "States at least one hard rule", "re": "must|never|always|do not|don't|only if|required"},
+    {"label": "Specifies an output shape", "re": "## *output|output *:|format|table|columns|template|structure|one row"}
   ]
   </script>
 </div>
 
-<div class="callout insight">
-  <span class="label">What you just produced</span>
-  <p>Two deliverables, not one. The tool column is a request to whoever administers your AI setup.
-  The circled judgement steps are your personal Skill backlog — and one of them will become your
-  Unit 10 capstone.</p>
-</div>
-
 <div class="source">
   <span class="label">Primary source for this unit</span>
-  <p><a href="https://www.anthropic.com/engineering/writing-tools-for-agents">Writing effective tools for AI agents — using AI agents</a> — Anthropic Engineering.</p>
-  <p>Written for people building tools, but read it as a user: it explains why some integrations feel
-  reliable and others feel erratic. The section on consolidating overlapping tools is the one to bring
-  to your platform team.</p>
+  <p><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">Skill authoring best practices</a> — Claude Platform Docs.</p>
+  <p>The densest and most useful page in the entire documentation set. Read "Core principles" and
+  "Writing effective descriptions" now; you will return to the rest during Unit 6. Then read three
+  real Skills from <a href="https://github.com/anthropics/skills">github.com/anthropics/skills</a> —
+  nothing calibrates quality faster than reading Skills written by the people who designed the format.</p>
 </div>
 
 <p class="seealso"><strong>See also:</strong>
-  <a href="../reference/0004-failure-modes.html">Agent failure modes</a> ·
+  <a href="../reference/0001-skill-md-anatomy.html">SKILL.md anatomy — the printable reference</a> ·
   <a href="../reference/0002-glossary.html">Glossary</a> ·
-  <a href="0008-evaluation-and-hitl.html">Unit 8 — where approval gates get designed</a>
+  <a href="0006-designing-a-skill.html">Unit 6 — building one properly</a>
 </p>
 
 <div class="ask">
-  <strong>Not sure where a step belongs?</strong> The tool/Skill line is genuinely subtle in real
-  work. Paste your chain and I will tell you which steps you have mislabelled — most people mark
-  judgement steps as tool steps at least once.
+  <strong>Paste me your SKILL.md.</strong> This is the point in the course where feedback matters
+  most. The keyword check confirms structure only — I can tell you whether your description will
+  actually trigger, and which lines are spending tokens on things Claude already knows.
 </div>
 
 <nav class="lesson-nav">
-  <a href="0003-context-engineering.html">← Unit 3</a>
+  <a href="0004-tools-and-actions.html">← Unit 4</a>
   <span class="spacer"></span>
-  <a href="0005-what-is-a-skill.html">Unit 5 — What exactly is a Skill? →</a>
+  <a href="0006-designing-a-skill.html">Unit 6 — Designing and building a Skill →</a>
 </nav>
 
 </main>
